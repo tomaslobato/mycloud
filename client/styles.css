@@ -1,0 +1,102 @@
+body {
+  margin: 0;
+  background-color: #272727;
+  color: white;
+}
+
+#app {
+  display: flex;
+}
+
+h1 {
+  margin: 0;
+}
+
+button {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+a {
+  color: white;
+}
+
+aside {
+  background-color: #1a1a1a;
+  width: 250px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 12px;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+aside h1 {
+  padding: 10px 0;
+}
+
+aside nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+aside nav a {
+  width: 100%;
+  text-align: center;
+  padding: 20px 0;
+}
+
+aside nav a:hover {
+  background-color: #272727;
+}
+
+button:hover {
+  cursor: pointer;
+  background-color: #1a1a1a;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+}
+
+header div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.explorer {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  list-style: none;
+  padding: 20px;
+  min-height: 70vh;
+}
+
+.explorer li {
+  padding: 7px;
+}
+
+.explorer li:hover {
+  background-color: #1a1a1a;
+  cursor: pointer;
+}
