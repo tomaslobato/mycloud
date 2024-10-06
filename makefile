@@ -2,4 +2,5 @@
 
 dev:
 	@echo "Starting frontend watch and backend server..."
-	(pnpm watch & air) && wait
+	@pnpm watch & \
+	air

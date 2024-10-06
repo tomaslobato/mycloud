@@ -1,0 +1,12 @@
+services:
+  app:
+    image: tomaslobato/mycloud
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - 4000:5000
+    volumes:
+      - ./:/app
+      - ~/mycloud:/app/mycloud

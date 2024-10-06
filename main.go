@@ -41,5 +41,9 @@ func main() {
 
 	app.Post("/api/upload", handlers.Upload)
 
+	app.Post("/api/create", handlers.Create)
+
+	app.Delete("/api/delete/:id", handlers.Delete)
+
 	app.Listen(":5000")
 }

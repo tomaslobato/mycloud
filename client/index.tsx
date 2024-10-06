@@ -4,7 +4,7 @@ import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
 import Sidebar from "./components/Sidebar"
 import Header from "./components/Header"
 import "./styles.css"
-import Explorer from "./Explorer"
+import Explorer from "./components/Explorer"
 
 const router = createBrowserRouter([
   {
@@ -23,13 +23,13 @@ const router = createBrowserRouter([
 const root = createRoot(document.getElementById("app"))
 
 function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  // const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
     <React.StrictMode>
-      {sidebarOpen && <Sidebar />}
+      {/* {sidebarOpen && <Sidebar />} */}
       <div className="panel">
-        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <Header />
         <Outlet />
       </div>
     </React.StrictMode>

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -13,6 +14,11 @@ import (
 type MoveReq struct {
 	OldId string `json:"oldId"`
 	NewId string `json:"newId"`
+}
+
+type CreateReq struct {
+	Id    string `json:"id"`
+	IsDir bool   `json:"isDir"`
 }
 
 func Get(c *fiber.Ctx) error {
@@ -67,6 +73,48 @@ func Upload(c *fiber.Ctx) error {
 			return c.Status(500).JSON(fiber.Map{"error": "failed to save file"})
 		}
 	}
+
+	return c.JSON(fiber.Map{"success": true})
+}
+
+func Delete(c *fiber.Ctx) error {
+	encodedId := c.Params("id")
+
+	id, err := url.QueryUnescape(encodedId)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	err = os.Remove(os.Getenv("ROOT") + "/" + id)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to remove file"})
+	}
+
+	return c.JSON(fiber.Map{"success": true})
+}
+
+func Create(c *fiber.Ctx) error {
+	var req CreateReq
+	err := c.BodyParser(&req)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	path := filepath.Join(os.Getenv("ROOT"), req.Id)
+
+	if req.IsDir {
+		err := os.Mkdir(path, os.ModePerm)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "failed to create dir"})
+		}
+		return c.JSON(fiber.Map{"success": true})
+	}
+
+	newFile, err := os.Create(path)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to create dir"})
+	}
+	defer newFile.Close()
 
 	return c.JSON(fiber.Map{"success": true})
 }
