@@ -1,6 +1,6 @@
 export async function move(oldId: string, newId: string) {
   const res = await fetch(`/api/move`, {
-    method: "put",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
@@ -9,8 +9,6 @@ export async function move(oldId: string, newId: string) {
       newId,
     }),
   });
-
-  const json = await res.json();
 }
 
 export async function rename(oldId: string, newName: string) {
@@ -84,14 +82,30 @@ export async function upload(ev: React.ChangeEvent<HTMLInputElement>) {
 
 export async function create(id: string, isDir: boolean, name: string) {
   const res = await fetch("/api/create", {
-    method: "post",
+    method: "POST",
     headers: {
-      "Content-Type": "application/json"
-    },    
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       id: id + "/" + name,
       isDir,
     }),
+  });
+  const json = await res.json();
+  console.log(json);
+}
+
+export async function saveContent(id: string, content: string) {
+  const encodedId = encodeURIComponent(id)
+
+  console.log(encodedId, content)
+
+  const res = await fetch(`/api/content/${encodedId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "text/plain",
+    },
+    body: content,
   });
   const json = await res.json();
   console.log(json);

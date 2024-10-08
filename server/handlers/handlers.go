@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -54,8 +53,6 @@ func Move(c *fiber.Ctx) error {
 	from := filepath.Join(ROOT, req.OldId)
 	to := filepath.Join(ROOT, req.NewId)
 
-	fmt.Println(from, to)
-
 	err = os.Rename(from, to)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -66,6 +63,7 @@ func Move(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 
+// check later
 func Upload(c *fiber.Ctx) error {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -73,13 +71,8 @@ func Upload(c *fiber.Ctx) error {
 	}
 
 	files := form.File["files"]
-	fmt.Println("Uploaded files:")
 
 	for _, file := range files {
-		// Print the file name and size for better debugging
-		fmt.Printf("File Name: %s, File Size: %d\n", file.Filename, file.Size)
-
-		// Save the file
 		err := c.SaveFile(file, os.Getenv("ROOT")+"/"+file.Filename)
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": "failed to save file"})
@@ -138,8 +131,7 @@ func Download(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid file ID"})
 	}
 
-	ROOT := os.Getenv("ROOT")
-	filePath := filepath.Join(ROOT, id)
+	filePath := filepath.Join(os.Getenv("ROOT"), id)
 
 	_, err = os.Stat(filePath)
 	if os.IsNotExist(err) {
@@ -147,4 +139,51 @@ func Download(c *fiber.Ctx) error {
 	}
 
 	return c.SendFile(filePath)
+}
+
+func GetContent(c *fiber.Ctx) error {
+	encodedId := c.Params("id")
+	id, err := url.QueryUnescape(encodedId)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid file ID"})
+	}
+
+	path := filepath.Join(os.Getenv("ROOT"), id)
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed reading file"})
+	}
+
+	c.Set("Content-Type", "text/plain")
+	return c.SendString(string(content))
+}
+
+func SaveContent(c *fiber.Ctx) error {
+	encodedId := c.Params("id")
+	id, err := url.QueryUnescape(encodedId)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid file ID"})
+	}
+
+	path := filepath.Join(os.Getenv("ROOT"), id)
+
+	if c.Get("Content-Type") != "text/plain" {
+		return c.Status(415).JSON(fiber.Map{"error": "Content-Type must be text/plain"})
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to access file"})
+	}
+	defer file.Close()
+
+	newContent := c.Body()
+
+	_, err = file.WriteString(string(newContent))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to write file"})
+	}
+
+	return c.JSON(fiber.Map{"success": "file written"})
 }

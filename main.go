@@ -34,5 +34,9 @@ func main() {
 
 	app.Get("/api/download/:id", handlers.Download)
 
+	app.Get("/api/content/:id", handlers.GetContent)
+
+	app.Patch("/api/content/:id", handlers.SaveContent)
+
 	app.Listen(":5000")
 }

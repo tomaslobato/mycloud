@@ -6,7 +6,6 @@ services:
       context: .
       dockerfile: dockerfile
     ports:
-      - 4000:5000
+      - 5555:5000
     volumes:
-      - ./:/app
       - ~/mycloud:/app/mycloud

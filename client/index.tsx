@@ -4,17 +4,12 @@ import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
 import Header from "./components/Header"
 import "./styles.css"
 import Explorer from "./components/Explorer"
+import Editor from "./components/Editor"
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />,
-    children: [
-      {
-        path: "/",
-        element: <Explorer />,
-      },
-    ],
+    element: <Layout />
   },
 ])
 
@@ -22,15 +17,16 @@ const router = createBrowserRouter([
 const root = createRoot(document.getElementById("app"))
 
 function Layout() {
-  // const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [editorOpen, setEditorOpen] = useState<{open: boolean, id: string} | null>(null)
 
   return (
     <React.StrictMode>
       {/* {sidebarOpen && <Sidebar />} */}
-      <div className="panel">
+      <div className="panel" style={editorOpen?.open ? {width: "25%"} : {width: "100%"}}>
         <Header />
-        <Outlet />
+        <Explorer setEditorOpen={setEditorOpen}/>
       </div>
+      {editorOpen?.open ? <Editor editorOpen={editorOpen} setEditorOpen={setEditorOpen}/> : null}
     </React.StrictMode>
   )
 }

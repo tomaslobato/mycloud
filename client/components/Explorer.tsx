@@ -1,5 +1,5 @@
-import { ChevronDown, ChevronLeft, ChevronRight, EllipsisVertical, Loader2 } from "lucide-react"
-import React, { Fragment, useEffect, useState } from "react"
+import { ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon, Loader2, XIcon } from "lucide-react"
+import React, { Fragment, SetStateAction, useEffect, useState } from "react"
 import { create, move, remove, rename, upload } from "../actions"
 import ContextMenu from "./ContextMenu"
 
@@ -10,7 +10,11 @@ export type File = {
     isOpen: boolean
 }
 
-export default function Explorer() {
+type Props = {
+    setEditorOpen: React.Dispatch<SetStateAction<{open: boolean, id: string} | null>>
+}
+
+export default function Explorer({setEditorOpen}: Props) {
     const [files, setFiles] = useState<File[] | null>(null)
     const [loading, setLoading] = useState(true)
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: File | null, isDir: boolean } | null>(null)
@@ -201,7 +205,7 @@ export default function Explorer() {
                         ) : (
                             <>
                                 <div>
-                                    {file.isOpen ? <ChevronDown /> : <ChevronRight />}
+                                    {file.isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
                                     <span>{file.name}</span>
                                 </div>
 
@@ -210,14 +214,22 @@ export default function Explorer() {
                                     ev.stopPropagation()
                                     handleContextMenu(ev, file)
                                 }} >
-                                    <EllipsisVertical />
+                                    <EllipsisVerticalIcon />
                                 </button>
                             </>
                         )
                         }
                     </div>
                     {selectedFile?.mode === "create" && selectedFile.id === file.id && (
-                        <div className="create-mode">
+                        <form className="create-mode">
+                            <button onClick={(ev) => {
+                                ev.preventDefault()
+                                ev.stopPropagation()
+                                setSelectedFile(null)
+                                setInput("")
+                            }}>
+                                <XIcon />
+                            </button>
                             <input type="text" onChange={ev => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
                             <button onClick={(ev) => {
                                 create(selectedFile.id, selectedFile.isDir!, input)
@@ -225,9 +237,9 @@ export default function Explorer() {
                                 setInput("")
                                 getFiles()
                             }}>
-                                Create {selectedFile.isDir ? "folder" : "file"}
+                                Save {selectedFile.isDir ? "folder" : "file"}
                             </button>
-                        </div>
+                        </form>
                     )}
                 </li >
             ) : (
@@ -237,6 +249,7 @@ export default function Explorer() {
                     draggable={!selectedFile}
                     onDragStart={(e) => handleDragStart(e, file.id)}
                     onContextMenu={(e) => handleContextMenu(e, file)}
+                    onClick={() => setEditorOpen({open:true,id:file.id})}
                 >
                     <div>
                         {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
@@ -259,7 +272,7 @@ export default function Explorer() {
                                     ev.stopPropagation()
                                     setContextMenu({ x: ev.clientX, y: ev.clientY, file, isDir: file.isDir })
                                 }} >
-                                    <EllipsisVertical />
+                                    <EllipsisVerticalIcon />
                                 </button>
                             </>
                         )
