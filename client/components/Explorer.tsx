@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronRight, EllipsisVertical, Loader2 } from "lucide-react"
 import React, { Fragment, useEffect, useState } from "react"
-import { move, remove, rename, upload } from "../actions"
+import { create, move, remove, rename, upload } from "../actions"
 import ContextMenu from "./ContextMenu"
 
 export type File = {
@@ -14,7 +14,7 @@ export default function Explorer() {
     const [files, setFiles] = useState<File[] | null>(null)
     const [loading, setLoading] = useState(true)
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: File | null, isDir: boolean } | null>(null)
-    const [selectedFile, setSelectedFile] = useState<{ id: string; mode: "create" | "rename" } | null>(null)
+    const [selectedFile, setSelectedFile] = useState<{ id: string; mode: "create" | "rename", isDir: null | boolean } | null>(null)
     const [input, setInput] = useState("")
 
     //GET FILES
@@ -112,10 +112,17 @@ export default function Explorer() {
 
 
     //CONTEXT MENU
-    function handleContextMenu(ev: React.MouseEvent<HTMLLIElement>, file: File) {
+    function handleContextMenu(ev: React.MouseEvent<HTMLLIElement | HTMLButtonElement>, file: File) {
         ev.preventDefault()
         ev.stopPropagation()
-        setContextMenu({ x: ev.clientX, y: ev.clientY, file, isDir: file.isDir })
+        const menuWidth = 100 // Adjust based on your context menu width
+        const newX = ev.clientX - menuWidth < 0 ? 0 : ev.clientX - menuWidth // Adjust the x position to the left
+        setContextMenu({ 
+            x: newX, 
+            y: ev.clientY, 
+            file, 
+            isDir: file.isDir 
+        })
     }
 
 
@@ -124,12 +131,40 @@ export default function Explorer() {
         if (!id) {
             return
         }
-        setSelectedFile({ id, mode: "rename" })
+        setSelectedFile({ id, mode: "rename", isDir: null })
         setInput(contextMenu?.file?.name!)
     }
 
-    async function handleCreate() {
+    async function handleCreateFile() {
+        const id = contextMenu?.file?.id!
+
+        setSelectedFile({ id, mode: "create", isDir: false })
+        setInput("")
     }
+
+    async function handleCreateDir() {
+        const id = contextMenu?.file?.id!
+
+        setSelectedFile({ id, mode: "create", isDir: true })
+        setInput("")
+    }
+
+    function handleDownload() {
+        const id = contextMenu?.file?.id!
+        if (!id || contextMenu?.isDir) return
+
+        const link = document.createElement('a')
+        link.href = `/api/download/${encodeURIComponent(id)}`
+        link.setAttribute('download', contextMenu?.file?.name!) // Setting the download attribute
+        link.style.display = 'none' // Hide the element from the UI
+        document.body.appendChild(link)
+
+        link.click() // Trigger the download
+        document.body.removeChild(link) // Clean up the DOM after download
+
+        console.log(`Downloading file: ${contextMenu?.file?.name}`)
+    }
+
 
 
     function renderFile(file: File) {
@@ -150,8 +185,7 @@ export default function Explorer() {
                     onDragOver={handleDragOver}
                     onDragStart={(e) => handleDragStart(e, file.id)}
                 >
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                        {file.isOpen ? <ChevronDown /> : <ChevronRight />}
+                    <div >
                         {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
                             <>
                                 <input type="text" onChange={(ev) => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
@@ -165,17 +199,36 @@ export default function Explorer() {
                                 </button>
                             </>
                         ) : (
-                            <span>{file.name}</span>
+                            <>
+                                <div>
+                                    {file.isOpen ? <ChevronDown /> : <ChevronRight />}
+                                    <span>{file.name}</span>
+                                </div>
+
+                                <button className="ellipsis" onClick={(ev) => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    handleContextMenu(ev, file)
+                                }} >
+                                    <EllipsisVertical />
+                                </button>
+                            </>
                         )
                         }
                     </div>
-                    <button onClick={(ev) => {
-                        ev.preventDefault()
-                        ev.stopPropagation()
-                        setContextMenu({ x: ev.clientX, y: ev.clientY, file, isDir: file.isDir })
-                    }} >
-                        <EllipsisVertical />
-                    </button>
+                    {selectedFile?.mode === "create" && selectedFile.id === file.id && (
+                        <div className="create-mode">
+                            <input type="text" onChange={ev => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
+                            <button onClick={(ev) => {
+                                create(selectedFile.id, selectedFile.isDir!, input)
+                                setSelectedFile(null)
+                                setInput("")
+                                getFiles()
+                            }}>
+                                Create {selectedFile.isDir ? "folder" : "file"}
+                            </button>
+                        </div>
+                    )}
                 </li >
             ) : (
                 <li
@@ -185,31 +238,34 @@ export default function Explorer() {
                     onDragStart={(e) => handleDragStart(e, file.id)}
                     onContextMenu={(e) => handleContextMenu(e, file)}
                 >
-                    {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
-                        <>
-                            <input type="text" onChange={(ev) => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
-                            <button onClick={() => {
-                                rename(selectedFile.id, input)
-                                setSelectedFile(null)
-                                setInput("")
-                                getFiles()
-                            }}>
-                                Rename
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <span>{file.name}</span>
-                            <button onClick={(ev) => {
-                                ev.preventDefault()
-                                ev.stopPropagation()
-                                setContextMenu({ x: ev.clientX, y: ev.clientY, file, isDir: file.isDir })
-                            }} >
-                                <EllipsisVertical />
-                            </button>
-                        </>
-                    )
-                    }
+                    <div>
+                        {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
+                            <>
+                                <input type="text" onChange={(ev) => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
+                                <button onClick={() => {
+                                    rename(selectedFile.id, input)
+                                    setSelectedFile(null)
+                                    setInput("")
+                                    getFiles()
+                                }}>
+                                    Rename
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <span>{file.name}</span>
+                                <button className="ellipsis" onClick={(ev) => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    setContextMenu({ x: ev.clientX, y: ev.clientY, file, isDir: file.isDir })
+                                }} >
+                                    <EllipsisVertical />
+                                </button>
+                            </>
+                        )
+                        }
+
+                    </div>
                 </li>
             )
             }
@@ -238,7 +294,9 @@ export default function Explorer() {
                     onClose={() => setContextMenu(null)}
                     onDelete={() => { remove(contextMenu?.file?.id!); getFiles() }}
                     onRename={handleRename}
-                    onCreate={() => { }}
+                    onCreateFile={handleCreateFile}
+                    onCreateDir={handleCreateDir}
+                    onDownload={handleDownload}
                     isDir={contextMenu.isDir}
                 />
             )}

@@ -1,4 +1,5 @@
 - create file/folder
+- download
 - text editor
 - password
 - video/audio player

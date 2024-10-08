@@ -8,18 +8,6 @@ import (
 	"github.com/tomaslobato/mycloud/server/handlers"
 )
 
-func HandleFrontRoutes(app *fiber.App, routes []string) {
-	app.Static("/", "./dist", fiber.Static{
-		CacheDuration: 200,
-	})
-
-	for _, r := range routes {
-		app.Get(r, func(c *fiber.Ctx) error {
-			return c.SendFile("./dist/index.html")
-		})
-	}
-}
-
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -30,10 +18,9 @@ func main() {
 
 	frontRoutes := []string{
 		"/",
-		"/explorer",
 	}
 
-	HandleFrontRoutes(app, frontRoutes)
+	handlers.HandleFrontRoutes(app, frontRoutes)
 
 	app.Get("/api/files", handlers.Get)
 
@@ -44,6 +31,8 @@ func main() {
 	app.Post("/api/create", handlers.Create)
 
 	app.Delete("/api/delete/:id", handlers.Delete)
+
+	app.Get("/api/download/:id", handlers.Download)
 
 	app.Listen(":5000")
 }

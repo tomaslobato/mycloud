@@ -7,14 +7,12 @@ import { useLocation } from "react-router-dom"
 //     setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>
 // }
 
-export default function Header() {
-    const location = useLocation()
-
+export default function Header() {  
     return (
         <header>
             <div>
                 {/* <button onClick={() => setSidebarOpen(!sidebarOpen)}><Menu /></button> */}
-                <h1>MyCloud / {location.pathname.split("/").pop()}</h1>
+                <h1>MyCloud</h1>
             </div>
         </header>
     )

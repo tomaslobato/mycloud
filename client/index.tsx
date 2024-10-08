@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { createRoot } from "react-dom/client"
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
-import Sidebar from "./components/Sidebar"
 import Header from "./components/Header"
 import "./styles.css"
 import Explorer from "./components/Explorer"
@@ -12,7 +11,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        path: "explorer",
+        path: "/",
         element: <Explorer />,
       },
     ],

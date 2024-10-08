@@ -103,16 +103,18 @@ header h1 {
 }
 
 .explorer li {
-  padding:8px;
-  padding-right: 7%;
-  display: flex;
-  align-items: center;
+  padding: 8px;
+  padding-right: 5%;
   border-radius: 10px;
   gap: 8px;
-  justify-content: space-between;
   font-size: 18px;
 }
 
+.explorer li div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
 .explorer li:hover {
   background-color: #1a1a1a;
@@ -143,19 +145,18 @@ header h1 {
 
 .explorer input {
   background-color: #1a1a1a;
-  border: none;
-  border-bottom: 1px solid white;
+  border: 1px solid rgb(160, 160, 255);
   padding: 6px 10px;
   font-size: 18px;
   outline: none;
   color: white;
-  width: 100%;
+  width: 94%;
   box-sizing: border-box;
   border-radius: 8px;
 }
 
-.explorer li button {
-  padding:0;
+.explorer li .ellipsis {
+  padding: 0;
   border: none;
 }
 
@@ -169,9 +170,19 @@ header h1 {
   border: 3px solid rgb(160, 160, 255);
   border-radius: 16px;
   margin-bottom: 4px;
-  color: rgb(160, 160, 255)
+  color: rgb(160, 160, 255);
 }
 
 .file {
   color: white;
+}
+
+.create-mode {
+  display: flex;
+  padding-top: 4px;
+}
+
+.create-mode button {
+  padding: 8px 6px ;
+  font-size: 15px;
 }

@@ -6,11 +6,13 @@ type ContextMenuProps = {
     onClose: () => void
     onDelete: () => void
     onRename: () => void
-    onCreate: () => void
+    onCreateFile: () => void
+    onCreateDir: () => void
     isDir: boolean
+    onDownload: () => void
 }
 
-export default function ContextMenu({ x, y, onClose, onDelete, onRename, onCreate, isDir }: ContextMenuProps) {
+export default function ContextMenu({ x, y, onClose, onDelete, onRename, onCreateFile, onCreateDir, isDir, onDownload }: ContextMenuProps) {
     return (
         <div
             style={{ position: 'absolute', left: x, top: y }}
@@ -19,9 +21,11 @@ export default function ContextMenu({ x, y, onClose, onDelete, onRename, onCreat
             onContextMenu={(e) => e.preventDefault()}
         >
             <ul>
+                {isDir ? <li onClick={onCreateFile}>Create New File</li> : null}
+                {isDir ? <li onClick={onCreateDir}>Create New Folder</li> : null}
+                {!isDir ? <li onClick={onDownload}>Download</li> : null}
                 <li onClick={onDelete}>Delete</li>
                 <li onClick={onRename}>Rename</li>
-                {isDir ? <li onClick={onCreate}>Create New File/Folder</li> : null}
             </ul>
         </div>
     )

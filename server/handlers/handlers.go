@@ -21,6 +21,18 @@ type CreateReq struct {
 	IsDir bool   `json:"isDir"`
 }
 
+func HandleFrontRoutes(app *fiber.App, routes []string) {
+	app.Static("/", "./dist", fiber.Static{
+		CacheDuration: 200,
+	})
+
+	for _, r := range routes {
+		app.Get(r, func(c *fiber.Ctx) error {
+			return c.SendFile("./dist/index.html")
+		})
+	}
+}
+
 func Get(c *fiber.Ctx) error {
 	files, err := utils.RecursiveSetFiles("", os.Getenv("ROOT"))
 	if err != nil {
@@ -117,4 +129,22 @@ func Create(c *fiber.Ctx) error {
 	defer newFile.Close()
 
 	return c.JSON(fiber.Map{"success": true})
+}
+
+func Download(c *fiber.Ctx) error {
+	encodedId := c.Params("id")
+	id, err := url.QueryUnescape(encodedId)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid file ID"})
+	}
+
+	ROOT := os.Getenv("ROOT")
+	filePath := filepath.Join(ROOT, id)
+
+	_, err = os.Stat(filePath)
+	if os.IsNotExist(err) {
+		return c.Status(404).JSON(fiber.Map{"error": "file not found"})
+	}
+
+	return c.SendFile(filePath)
 }

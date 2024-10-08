@@ -81,3 +81,18 @@ export async function upload(ev: React.ChangeEvent<HTMLInputElement>) {
 
   ev.target.value = "";
 }
+
+export async function create(id: string, isDir: boolean, name: string) {
+  const res = await fetch("/api/create", {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json"
+    },    
+    body: JSON.stringify({
+      id: id + "/" + name,
+      isDir,
+    }),
+  });
+  const json = await res.json();
+  console.log(json);
+}
