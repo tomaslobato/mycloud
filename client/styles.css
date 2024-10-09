@@ -206,4 +206,16 @@ header h1 {
 .create-mode button {
   font-size: 15px;
 }
+
+.mobile-hidden {
+  display: none;
+}
+
+.editor {
+  width: 100%;
+}
+
+.editor header h1 {
+  font-size: 20px;
+}
 }
