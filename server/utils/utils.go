@@ -3,8 +3,9 @@ package utils
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/tomaslobato/mycloud/server/models"
+	"github.com/tomaslobato/mycloud/models"
 )
 
 func RecursiveSetFiles(currentDir string, ROOT string) ([]models.File, error) {
@@ -16,6 +17,10 @@ func RecursiveSetFiles(currentDir string, ROOT string) ([]models.File, error) {
 	}
 
 	for _, f := range fls {
+		if strings.HasPrefix(f.Name(), ".") {
+			continue
+		}
+
 		var file models.File
 		file.Name = f.Name()
 		file.IsDir = f.IsDir()

@@ -1,25 +1,5 @@
 {
-  "name": "frontend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "watch": "node build.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@tanstack/react-query": "^5.59.0",
-    "@types/react": "^18.3.11",
-    "esbuild": "^0.24.0",
-    "lucide-react": "^0.447.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2"
-  },
-  "devDependencies": {
-    "@types/node": "^22.7.4",
-    "typescript": "^5.6.2"
-  }
+	"devDependencies": {
+		"@types/react-dom": "^18.3.0"
+	}
 }
