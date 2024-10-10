@@ -4,8 +4,10 @@ services:
     restart: unless-stopped
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     ports:
       - 5555:5000
     volumes:
       - ~/mycloud:/app/mycloud
+    environment:
+      - ROOT=/app/mycloud

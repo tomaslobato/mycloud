@@ -1,3 +1,0 @@
-- password
-- video/audio player
-- setup commands

@@ -4,11 +4,9 @@ RUN apk add --no-cache make
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-COPY package.json ./
-RUN go mod download
-
 COPY . .
+
+RUN cd server && go mod download        
 
 EXPOSE 5000
 

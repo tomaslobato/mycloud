@@ -1,18 +1,11 @@
 package main
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"github.com/tomaslobato/mycloud/handlers"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	app := fiber.New()
 
