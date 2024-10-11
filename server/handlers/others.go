@@ -21,9 +21,22 @@ func Delete(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid request"})
 	}
 
-	err = os.Remove(os.Getenv("ROOT") + "/" + id)
+	path := filepath.Join(os.Getenv("ROOT"), id)
+	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed to remove file"})
+		if os.IsNotExist(err) {
+			return c.Status(404).JSON(fiber.Map{"error": "file or dir not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "failed to get file info"})
+	}
+
+	if fileInfo.IsDir() {
+		err = os.RemoveAll(path)
+	} else {
+		err = os.Remove(path)
+	}
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to remove file or dir"})
 	}
 
 	return c.JSON(fiber.Map{"success": true})

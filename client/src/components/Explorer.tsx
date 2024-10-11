@@ -1,9 +1,11 @@
-import { ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon, Loader2, XIcon } from "lucide-react"
 import React, { Fragment, SetStateAction, useEffect, useState } from "react"
-import { create, move, remove, rename, upload } from "../actions.ts"
+import { create, getFiles, move, rename, upload } from "../actions.ts"
 import ContextMenu from "./ContextMenu"
+import CreateForm from "./CreateForm.tsx"
+import FileComponent from "./FileComponent.tsx"
+import { FilePlusIcon, FolderPlusIcon, Loader2 } from "lucide-react"
 
-type FileItem = {
+export type FileItem = {
     isDir: boolean
     id: string
     name: string
@@ -21,18 +23,17 @@ export default function Explorer({ setEditorOpen }: Props) {
     const [selectedFile, setSelectedFile] = useState<{ id: string; mode: "create" | "rename", isDir: null | boolean } | null>(null)
     const [input, setInput] = useState("")
 
-    //GET FILES
-    async function getFiles() {
-        try {
-            const res = await fetch("/api/files")
-            const json = await res.json()
-            setFiles(json)
-            setLoading(false)
-        } catch (err) {
-            console.error(err)
-        }
+    async function handleGetFiles() {
+        setLoading(true)
+        const json = await getFiles()
+        setFiles(json)
+        setLoading(false)
     }
-    useEffect(() => { getFiles() }, [])
+
+    useEffect(() => {
+        handleGetFiles()
+    }, [])
+
 
     //KEYS
     useEffect(() => {
@@ -51,12 +52,15 @@ export default function Explorer({ setEditorOpen }: Props) {
                 setInput("")
             }
             if (ev.key === "Enter" && selectedFile) {
-                rename(selectedFile.id, input)
-                    .then(() => {
-                        setSelectedFile(null)
-                        setInput("")
-                        getFiles()
-                    })
+                if (selectedFile.mode === "rename") {
+                    rename(selectedFile.id, input)
+                } else {
+                    create(selectedFile.id, selectedFile.isDir!, input)
+                }
+
+                setSelectedFile(null)
+                setInput("")
+                getFiles()
             }
         }
 
@@ -70,51 +74,6 @@ export default function Explorer({ setEditorOpen }: Props) {
             document.removeEventListener('keydown', handleEscapeKey)
         }
     }, [contextMenu, selectedFile, input])
-
-    function toggleDir(id: string) {
-        if (!files) return
-        const i = files?.findIndex(file => file.id === id)
-        const newFiles = [...files]
-        newFiles[i].isOpen = !files[i].isOpen
-        setFiles(newFiles)
-    }
-
-    function isParentOpen(id: string): boolean {
-        const lastSlashIndex = id.lastIndexOf("/")
-
-        if (lastSlashIndex === -1) return true //it's a root level file
-
-        const parentId = id.substring(0, lastSlashIndex)
-        const parent = files?.find((file) => parentId === file.id) //get parent     
-
-        return parent?.isOpen ? isParentOpen(parent.id) : false  //check parent dirs recursively
-    }
-
-    //DRAG AND DROP (MOVE)
-    function handleDragStart(ev: React.DragEvent<HTMLLIElement>, fileId: string) {
-        ev.dataTransfer.setData("text/plain", fileId)
-    }
-
-    function handleDrop(ev: React.DragEvent<HTMLLIElement | HTMLUListElement>, newDirId: string) {
-        ev.preventDefault()
-        const fileId = ev.dataTransfer.getData("text")
-
-        if (!files) return
-
-        const name = fileId.split("/").pop()!
-
-        if (newDirId === "") {
-            move(fileId, name)
-        }
-
-        move(fileId, newDirId + "/" + name)
-
-        getFiles()
-    }
-
-    function handleDragOver(ev: React.DragEvent<HTMLLIElement | HTMLUListElement>) {
-        ev.preventDefault() // Required to allow dropping
-    }
 
 
 
@@ -132,167 +91,54 @@ export default function Explorer({ setEditorOpen }: Props) {
         })
     }
 
+    function setCreate(type: "file" | "folder") {
+        let id = ""
 
-    function handleRename() {
-        const id = contextMenu?.file?.id!
-        if (!id) {
-            return
+        if (contextMenu !== null) {
+            id = contextMenu?.file?.id!
         }
-        setSelectedFile({ id, mode: "rename", isDir: null })
-        setInput(contextMenu?.file?.name!)
-    }
 
-    async function handleCreateFile() {
-        const id = contextMenu?.file?.id!
-
-        setSelectedFile({ id, mode: "create", isDir: false })
+        setSelectedFile({ id, mode: "create", isDir: type === "file" ? false : true })
         setInput("")
     }
 
-    async function handleCreateDir() {
-        const id = contextMenu?.file?.id!
 
-        setSelectedFile({ id, mode: "create", isDir: true })
-        setInput("")
+    //DRAG AND DROP
+    function handleDrop(ev: React.DragEvent<HTMLLIElement | HTMLUListElement>, newDirId: string) {
+        ev.preventDefault()
+        const fileId = ev.dataTransfer.getData("text")
+
+        if (!files) return
+
+        const name = fileId.split("/").pop()!
+
+        if (newDirId === "") {
+            move(fileId, name)
+        }
+
+        move(fileId, newDirId + "/" + name)
+
+        handleGetFiles()
     }
 
-    function handleDownload() {
-        const id = contextMenu?.file?.id!
-        if (!id || contextMenu?.isDir) return
-
-        const link = document.createElement('a')
-        link.href = `/api/download/${encodeURIComponent(id)}`
-        link.setAttribute('download', contextMenu?.file?.name!) // Setting the download attribute
-        link.style.display = 'none' // Hide the element from the UI
-        document.body.appendChild(link)
-
-        link.click() // Trigger the download
-        document.body.removeChild(link) // Clean up the DOM after download
-
-        console.log(`Downloading file: ${contextMenu?.file?.name}`)
+    function handleDragOver(ev: React.DragEvent<HTMLLIElement | HTMLUListElement>) {
+        ev.preventDefault()
     }
 
+    function handleDragStart(ev: React.DragEvent<HTMLLIElement>, fileId: string) {
+        ev.dataTransfer.setData("text/plain", fileId)
+    }
 
+    //
+    function isParentOpen(id: string): boolean {
+        const lastSlashIndex = id.lastIndexOf("/")
 
-    function renderFile(file: FileItem) {
-        let slashes
-        slashes = file.id.split("/").length
-        if (slashes === 0) return
+        if (lastSlashIndex === -1) return true //it's a root level file
 
-        return <>
-            {file.isDir ? (
-                <li key={file.id}
-                    className="dir"
-                    onClick={() => toggleDir(file.id)}
-                    onContextMenu={(e) => handleContextMenu(e, file)}
-                    style={{ paddingLeft: slashes * 16 + "px" }}
-                    draggable={!selectedFile}
-                    onDrop={(ev) => handleDrop(ev, file.id)}
-                    onDragOver={handleDragOver}
-                    onDragStart={(e) => handleDragStart(e, file.id)}
-                >
-                    <>
-                        {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
-                            <form>
-                                <button onClick={ev => {
-                                    ev.preventDefault()
-                                    ev.stopPropagation()
-                                    setInput("")
-                                    setSelectedFile(null)
-                                }}><XIcon/></button>
-                                <input type="text" onChange={(ev) => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
-                                <button onClick={(ev) => {
-                                    ev.preventDefault()
-                                    ev.stopPropagation()
-                                    rename(selectedFile.id, input)
-                                    setSelectedFile(null)
-                                    setInput("")
-                                    getFiles()
-                                }}>
-                                    Rename
-                                </button>
-                            </form>
-                        ) : (
-                            <div>
-                                <div>
-                                    {file.isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                                    <span>{file.name}</span>
-                                </div>
+        const parentId = id.substring(0, lastSlashIndex)
+        const parent = files?.find((file) => parentId === file.id) //get parent     
 
-                                <button className="ellipsis" onClick={(ev) => {
-                                    ev.preventDefault()
-                                    ev.stopPropagation()
-                                    handleContextMenu(ev, file)
-                                }} >
-                                    <EllipsisVerticalIcon />
-                                </button>
-                            </div>
-                        )
-                        }
-                    </>
-                    {selectedFile?.mode === "create" && selectedFile.id === file.id && (
-                        <form className="create-mode">
-                            <button onClick={(ev) => {
-                                ev.preventDefault()
-                                ev.stopPropagation()
-                                setSelectedFile(null)
-                                setInput("")
-                            }}>
-                                <XIcon />
-                            </button>
-                            <input type="text" onChange={ev => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
-                            <button onClick={() => {
-                                create(selectedFile.id, selectedFile.isDir!, input)
-                                setSelectedFile(null)
-                                setInput("")
-                                getFiles()
-                            }}>
-                                Save {selectedFile.isDir ? "folder" : "file"}
-                            </button>
-                        </form>
-                    )}
-                </li >
-            ) : (
-                <li
-                    className="file"
-                    style={{ paddingLeft: slashes * 16 + "px" }}
-                    draggable={!selectedFile}
-                    onDragStart={(e) => handleDragStart(e, file.id)}
-                    onContextMenu={(e) => handleContextMenu(e, file)}
-                    onClick={() => setEditorOpen({ open: true, id: file.id })}
-                >
-                    <div>
-                        {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
-                            <>
-                                <input type="text" onChange={(ev) => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
-                                <button onClick={() => {
-                                    rename(selectedFile.id, input)
-                                    setSelectedFile(null)
-                                    setInput("")
-                                    getFiles()
-                                }}>
-                                    Rename
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <span>{file.name}</span>
-                                <button className="ellipsis" onClick={(ev) => {
-                                    ev.preventDefault()
-                                    ev.stopPropagation()
-                                    handleContextMenu(ev, file)
-                                }} >
-                                    <EllipsisVerticalIcon />
-                                </button>
-                            </>
-                        )
-                        }
-
-                    </div>
-                </li>
-            )
-            }
-        </>
+        return parent?.isOpen ? isParentOpen(parent.id) : false  //check parent dirs recursively
     }
 
     if (loading) {
@@ -304,23 +150,47 @@ export default function Explorer({ setEditorOpen }: Props) {
             <ul className="explorer" onDrop={(ev) => handleDrop(ev, "")} onDragOver={handleDragOver}>
                 <label htmlFor="fileinput" className="fileinput">Click or drop your files here</label>
                 <input type="file" multiple onChange={(ev) => { upload(ev); getFiles() }} hidden id="fileinput" />
+
+                {selectedFile?.id === "" && selectedFile.mode === "create" ?
+                    <CreateForm selectedFile={selectedFile} setSelectedFile={setSelectedFile} setInput={setInput} input={input} handleGetFiles={handleGetFiles}/>
+                    : <div style={{ display: "flex", justifyContent: "center", gap: "10px", padding: "8px 0" }} className="topbuttons">
+                        <button onClick={() => setCreate("file")} style={{ fontSize: "18px", display: "flex", gap: "4px" }}>
+                            <FilePlusIcon /> New file
+                        </button>
+                        <button onClick={() => setCreate("folder")} style={{ fontSize: "18px", display: "flex", gap: "4px" }}>
+                            <FolderPlusIcon /> New folder
+                        </button>
+                    </div>
+                }
+
                 {files?.map(file => (
                     <Fragment key={file.id}>
-                        {file.id.includes("/") && !isParentOpen(file.id) ? null : renderFile(file)}
+                        {file.id.includes("/") && !isParentOpen(file.id) ? null
+                            : <FileComponent
+                                setEditorOpen={setEditorOpen}
+                                handleGetFiles={handleGetFiles}
+                                input={input}
+                                setInput={setInput}
+                                file={file}
+                                files={files}
+                                setFiles={setFiles}
+                                handleContextMenu={handleContextMenu}
+                                selectedFile={selectedFile}
+                                setSelectedFile={setSelectedFile}
+                                handleDragStart={handleDragStart}
+                                handleDragOver={handleDragOver}
+                                handleDrop={handleDrop} />}
                     </Fragment>
                 ))}
             </ul>
             {contextMenu && (
                 <ContextMenu
-                    x={contextMenu.x}
-                    y={contextMenu.y}
-                    onClose={() => setContextMenu(null)}
-                    onDelete={() => { remove(contextMenu?.file?.id!); getFiles() }}
-                    onRename={handleRename}
-                    onCreateFile={handleCreateFile}
-                    onCreateDir={handleCreateDir}
-                    onDownload={handleDownload}
-                    isDir={contextMenu.isDir}
+                    onCreate={setCreate}
+                    contextMenu={contextMenu}
+                    setContextMenu={setContextMenu}
+                    setSelectedFile={setSelectedFile}
+                    setInput={setInput}
+                    handleGetFiles={handleGetFiles}
                 />
             )}
         </>

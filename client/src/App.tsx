@@ -21,7 +21,7 @@ export default function App() {
       <div 
         style={{ 
             display: editorOpen?.open && isMobile ? "none" : "block", 
-            width: editorOpen?.open ? "25%" : "100%",
+            width: editorOpen?.open ? "20%" : "100%",
             height: "100%"
         }}>
             <Header />
