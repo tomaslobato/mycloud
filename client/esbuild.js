@@ -2,7 +2,7 @@ const esbuild = require("esbuild");
 
 async function build() {
   const ctx = await esbuild.context({
-    entryPoints: ["src/index.tsx"],
+    entryPoints: ["src/index.tsx", "src/index.css"],
     bundle: true,
     outdir: "./dist",
     minify: true,

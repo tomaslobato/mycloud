@@ -168,7 +168,7 @@ header h1 {
 
 .create-mode {
   display: flex;
-  padding-top: 6px;
+  padding: 8px 0  ;
   gap: 6px;
   justify-content: center;
 }
@@ -180,7 +180,7 @@ header h1 {
 
 .create-mode button {
   padding: 4px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .editor {
@@ -220,6 +220,47 @@ header h1 {
 .editor header button {
   font-size: 22px;
   border: none;
+}
+
+.table-container {
+  color:white;
+  width: 100%;
+}
+
+.table-container table {
+  width: 100%;
+}
+
+.table-container  button {
+  background-color: #272727;
+  border: 1px solid gray;
+  border-radius: 4px;
+}
+
+.table-container input {
+  border: none; 
+  outline:none;
+  margin:0;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.table-container  button:hover {
+  background-color: #1a1a1a;
+}
+
+
+
+.markdown {
+  width: 100%;
+  text-align: left;
+  color:white;
+  border-radius: 16px;
+  background-color: #1a1a1a;
+  padding: 16px;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media screen and (max-width: 600px) {

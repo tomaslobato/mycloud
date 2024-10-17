@@ -3,6 +3,7 @@ import { FileItem } from "./Explorer"
 import { rename } from "../actions"
 import React from "react"
 import CreateForm from "./CreateForm"
+import ProperIcon from "./ProperIcon"
 
 type Props = {
     file: FileItem,
@@ -123,6 +124,15 @@ export default function FileComponent(
                             setInput("")
                             handleGetFiles()
                         }}>
+                            <button type="button" onClick={(ev) => {
+                                ev.preventDefault()
+                                ev.stopPropagation()
+                                setInput("")
+                                setSelectedFile(null)
+                                handleGetFiles()    
+                            }}>
+                                <XIcon />
+                            </button>
                             <input
                                 type="text"
                                 onChange={(ev) => setInput(ev.target.value)}
@@ -131,18 +141,13 @@ export default function FileComponent(
                                 autoFocus
                             />
                             <button type="submit">Rename</button>
-                            <button type="button" onClick={(ev) => {
-                                ev.preventDefault()
-                                ev.stopPropagation()
-                                setInput("")
-                                setSelectedFile(null)
-                            }}>
-                                <XIcon />
-                            </button>
                         </form>
                     ) : (
                         <div>
-                            <span>{file.name}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <ProperIcon name={file.name} />
+                                <span>{file.name}</span>
+                            </div>
                             <button className="ellipsis" onClick={(ev) => {
                                 ev.preventDefault()
                                 ev.stopPropagation()
