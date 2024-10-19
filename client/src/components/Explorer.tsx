@@ -1,5 +1,5 @@
 import React, { Fragment, SetStateAction, useEffect, useState } from "react"
-import { create, getFiles, move, rename, upload } from "../actions.ts"
+import { create, move, rename, upload } from "../actions.ts"
 import ContextMenu from "./ContextMenu"
 import CreateForm from "./CreateForm.tsx"
 import FileComponent from "./FileComponent.tsx"
@@ -21,13 +21,24 @@ export default function Explorer({ setEditorOpen }: Props) {
     const [loading, setLoading] = useState(true)
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: FileItem | null, isDir: boolean } | null>(null)
     const [selectedFile, setSelectedFile] = useState<{ id: string; mode: "create" | "rename", isDir: null | boolean } | null>(null)
+    const [selectedFiles, setSelectedFiles] = useState<string[] | null>(null)
     const [input, setInput] = useState("")
+    const [error, setError] = useState("")
 
     async function handleGetFiles() {
-        setLoading(true)
-        const json = await getFiles()
-        setFiles(json)
-        setLoading(false)
+        try {
+            setError("")
+            setLoading(true)
+            const res = await fetch("/api/files")
+            if (!res.ok) throw new Error()
+            const json = await res.json()
+            setFiles(json)
+            setLoading(false)
+        } catch (err) {
+            setLoading(false)
+            console.error(err)
+            setError("The selected directory doesn't exist")
+        }
     }
 
     useEffect(() => {
@@ -60,7 +71,7 @@ export default function Explorer({ setEditorOpen }: Props) {
 
                 setSelectedFile(null)
                 setInput("")
-                getFiles()
+                handleGetFiles()
             }
         }
 
@@ -142,17 +153,28 @@ export default function Explorer({ setEditorOpen }: Props) {
     }
 
     if (loading) {
-        return <Loader2 />
+        return <div className="errscreen">
+            <Loader2 className="loader" style={{ width: "80px", height: "80px" }} />
+        </div>
+    }
+
+    if (error != "") {
+        return (
+            <div className="errscreen">
+                <h1>{error}</h1>
+                <button onClick={handleGetFiles}>Retry</button>
+            </div>
+        )
     }
 
     return (
         <>
             <ul className="explorer" onDrop={(ev) => handleDrop(ev, "")} onDragOver={handleDragOver}>
                 <label htmlFor="fileinput" className="fileinput">Click or drop your files here</label>
-                <input type="file" multiple onChange={(ev) => { upload(ev); getFiles() }} hidden id="fileinput" />
+                <input type="file" multiple onChange={(ev) => { upload(ev); handleGetFiles() }} hidden id="fileinput" />
 
                 {selectedFile?.id === "" && selectedFile.mode === "create" ?
-                    <CreateForm selectedFile={selectedFile} setSelectedFile={setSelectedFile} setInput={setInput} input={input} handleGetFiles={handleGetFiles}/>
+                    <CreateForm selectedFile={selectedFile} setSelectedFile={setSelectedFile} setInput={setInput} input={input} handleGetFiles={handleGetFiles} />
                     : <div style={{ display: "flex", justifyContent: "center", gap: "10px", padding: "8px 0" }} className="topbuttons">
                         <button onClick={() => setCreate("file")} style={{ fontSize: "18px", display: "flex", gap: "4px" }}>
                             <FilePlusIcon /> New file
@@ -167,6 +189,8 @@ export default function Explorer({ setEditorOpen }: Props) {
                     <Fragment key={file.id}>
                         {file.id.includes("/") && !isParentOpen(file.id) ? null
                             : <FileComponent
+                                selectedFiles={selectedFiles}
+                                setSelectedFiles={setSelectedFiles}
                                 setEditorOpen={setEditorOpen}
                                 handleGetFiles={handleGetFiles}
                                 input={input}

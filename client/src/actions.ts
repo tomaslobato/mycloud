@@ -105,13 +105,3 @@ export async function saveContent(id: string, content: string) {
     body: content,
   });
 }
-
-export async function getFiles() {
-  try {
-    const res = await fetch("/api/files");
-    const json = await res.json();
-    return json;
-  } catch (err) {
-    console.error(err);
-  }
-}

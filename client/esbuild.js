@@ -1,19 +1,14 @@
 const esbuild = require("esbuild");
 
-async function build() {
-  const ctx = await esbuild.context({
+esbuild
+  .build({
     entryPoints: ["src/index.tsx", "src/index.css"],
     bundle: true,
     outdir: "./dist",
     minify: true,
-    plugins: [],  
+    plugins: [],
+  })
+  .catch((error) => {
+    console.error("Build failed:", error);
+    process.exit(1);
   });
-
-  await ctx.watch();
-  console.log("⚡ Build complete!");
-}
-
-build().catch((error) => {
-  console.error("Build failed:", error);
-  process.exit(1);
-});

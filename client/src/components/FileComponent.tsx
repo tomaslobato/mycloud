@@ -23,10 +23,12 @@ type Props = {
     handleDragOver: (ev: React.DragEvent<HTMLLIElement | HTMLUListElement>) => void
     handleDrop: (ev: React.DragEvent<HTMLLIElement | HTMLUListElement>, newDirId: string) => void
     handleDragStart: (ev: React.DragEvent<HTMLLIElement>, fileId: string) => void
+    selectedFiles: string[] | null
+    setSelectedFiles: React.Dispatch<React.SetStateAction<string[] | null>>
 }
 
 export default function FileComponent(
-    { files, setFiles, file, handleContextMenu, selectedFile, setSelectedFile, input, setInput, handleGetFiles, setEditorOpen, handleDrop, handleDragOver, handleDragStart }: Props
+    { files, setFiles, file, handleContextMenu, selectedFile, setSelectedFile, input, setInput, handleGetFiles, setEditorOpen, handleDrop, handleDragOver, handleDragStart, selectedFiles, setSelectedFiles }: Props
 ) {
 
     function toggleDir(id: string) {
@@ -52,6 +54,17 @@ export default function FileComponent(
         setSelectedFile(null)
         setInput("")
         handleGetFiles()
+    }
+
+    function openFile() {
+        setEditorOpen({ open: true, id: file.id })
+        setSelectedFiles([file.id])
+    }
+
+    function isSelected(id: string) {
+        if (selectedFiles?.includes(id)) {
+            return true
+        } else return false
     }
 
 
@@ -107,12 +120,12 @@ export default function FileComponent(
             </li >
         ) : (
             <li
-                className="file"
-                style={{ paddingLeft: getLevel() * 16 + "px", background: selectedFile?.id === file.id ? "#1a1a1a" : "" }}
+                className={`file ${isSelected(file.id) ? "selected" : ""}`}
+                style={{ paddingLeft: getLevel() * 16 + "px" }}
                 draggable={!selectedFile}
                 onDragStart={(e) => handleDragStart(e, file.id)}
                 onContextMenu={(e) => handleContextMenu(e, file)}
-                onClick={() => setEditorOpen({ open: true, id: file.id })}
+                onClick={openFile}
             >
                 <>
                     {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
@@ -129,7 +142,7 @@ export default function FileComponent(
                                 ev.stopPropagation()
                                 setInput("")
                                 setSelectedFile(null)
-                                handleGetFiles()    
+                                handleGetFiles()
                             }}>
                                 <XIcon />
                             </button>

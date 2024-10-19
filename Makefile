@@ -1,14 +1,11 @@
-.PHONY: dev run build-client build-server
-
-build-client:
-	cd client && node esbuild.js
-
-build-server:
-	cd server && go build -o ../tmp/main
+.PHONY: dev run build
 
 dev:
-	(cd client && node esbuild.js) & \
-	(cd server && air)
+	cd server && air & \
+	cd client && node esbuild-watch.js
+
+build:
+	cd client && node esbuild.js && cd ../server && go build -o ./tmp/main
 
 run:
 	cd server && go run main.go

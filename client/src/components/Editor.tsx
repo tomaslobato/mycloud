@@ -16,8 +16,6 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
     const [isCsv, setIsCsv] = useState(false)
     const [viewMode, setViewMode] = useState<"table" | "raw" | "md" | "edit">("edit")
 
-    console.log(csvData)
-
     useEffect(() => {
         async function getContent() {
             const encodedId = encodeURIComponent(editorOpen.id)
@@ -134,7 +132,7 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
                             }
                         </>
                     }
-                    <button onClick={handleSave}>{saving ? <Loader2 /> : "Save"}</button>
+                    <button onClick={handleSave}>{saving ? <Loader2 className="loader"/> : "Save"}</button>
                 </div>
             </header>
             {isCsv ? (
