@@ -1,7 +1,6 @@
 import { DownloadIcon, FilePlusIcon, FolderPlusIcon, SquarePenIcon, Trash2Icon } from "lucide-react"
 import { FileItem } from "./Explorer"
 import React from "react"
-import { remove } from "../actions"
 
 type ContextMenuProps = {
     contextMenu: {
@@ -17,17 +16,11 @@ type ContextMenuProps = {
         isDir: boolean
     }
         | null>>
-    setSelectedFile: React.Dispatch<React.SetStateAction<{
-        id: string
-        mode: "create" | "rename"
-        isDir: null | boolean
-    } | null>>
-    setInput: React.Dispatch<React.SetStateAction<string>>
-    onCreate: (type: "file" | "folder") => void
-    handleGetFiles: () => void
+    setForm: (type: "file" | "dir", mode: "rename" | "create") => void
+    handleDelete: () => void
 }
 
-export default function ContextMenu({ contextMenu, setContextMenu, setSelectedFile, setInput, onCreate, handleGetFiles }: ContextMenuProps) {
+export default function ContextMenu({ contextMenu, setContextMenu, setForm, handleDelete }: ContextMenuProps) {
     function handleDownload() {
         const id = contextMenu?.file?.id!
         if (!id || contextMenu?.isDir) return
@@ -43,29 +36,6 @@ export default function ContextMenu({ contextMenu, setContextMenu, setSelectedFi
         setContextMenu(null)
     }
 
-    function handleRename() {
-        const id = contextMenu?.file?.id
-        if (!id) {
-            return
-        }
-        setSelectedFile({ id, mode: "rename", isDir: contextMenu.file?.isDir! })
-        setInput(contextMenu?.file?.name || "")
-        setContextMenu(null)
-    }
-
-    async function handleDelete() {
-        if (!contextMenu?.file?.id) {
-            return
-        }
-        try {
-            await remove(contextMenu.file.id)
-            setContextMenu(null)
-            await handleGetFiles()
-        } catch (error) {
-            console.error("Failed to delete file:", error)
-        }
-    }
-
 
     return (
         <div
@@ -76,10 +46,10 @@ export default function ContextMenu({ contextMenu, setContextMenu, setSelectedFi
             onContextMenu={(ev) => ev.preventDefault()}
         >
             <ul>
-                {contextMenu?.isDir ? <li onClick={() => onCreate("file")}><FilePlusIcon />New File</li> : null}
-                {contextMenu?.isDir ? <li onClick={() => onCreate("folder")}><FolderPlusIcon />New Folder</li> : null}
+                {contextMenu?.isDir ? <li onClick={() => setForm("file", "create")}><FilePlusIcon />New File</li> : null}
+                {contextMenu?.isDir ? <li onClick={() => setForm("dir", "create")}><FolderPlusIcon />New Folder</li> : null}
                 {!contextMenu?.isDir ? <li onClick={handleDownload}><DownloadIcon />Download</li> : null}
-                <li onClick={handleRename}><SquarePenIcon />Rename</li>
+                <li onClick={() => setForm(contextMenu.isDir ? "dir" : "file", "rename")}><SquarePenIcon />Rename</li>
                 <li onClick={handleDelete}><Trash2Icon /> Delete</li>
             </ul>
         </div>

@@ -55,17 +55,13 @@ export async function remove(id: string) {
 }
 
 //UPLOAD
-export async function upload(ev: React.ChangeEvent<HTMLInputElement>) {
-  const selectedFiles = ev.target.files;
-
-  // Ensure that files are selected
+export async function upload(selectedFiles: FileList) {
   if (!selectedFiles || selectedFiles.length === 0) return;
 
   const formData = new FormData();
 
-  // Use a correct loop initialization
   for (let i = 0; i < selectedFiles.length; i++) {
-    formData.append("files", selectedFiles[i]); // Append each file to the formData
+    formData.append("files", selectedFiles[i]);
   }
 
   const res = await fetch("/api/upload", {
@@ -77,8 +73,6 @@ export async function upload(ev: React.ChangeEvent<HTMLInputElement>) {
     console.error("Upload failed:", res.statusText);
     return;
   }
-
-  ev.target.value = "";
 }
 
 export async function create(id: string, isDir: boolean, name: string) {

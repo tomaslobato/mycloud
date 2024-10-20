@@ -2,40 +2,38 @@ import { XIcon } from "lucide-react"
 import { create } from "../actions"
 
 type Props = {
-    selectedFile: { id: string; mode: "create" | "rename", isDir: null | boolean } | null
-    setSelectedFile: React.Dispatch<React.SetStateAction<{
-        id: string
-        mode: "create" | "rename"
-        isDir: null | boolean
-    } | null>>
-    input: string
-    setInput: React.Dispatch<React.SetStateAction<string>>
+    selectedFileId: string
+    setSelectedFiles: React.Dispatch<React.SetStateAction<string[]>>
+    editing: { mode: "rename" | "create", type: "file" | "dir", input: string } | null
+    setEditing: React.Dispatch<React.SetStateAction<{ mode: "rename" | "create", type: "file" | "dir", input: string } | null>>
     handleGetFiles: () => void
 }
 
-export default function CreateForm({ selectedFile, setSelectedFile, setInput, input, handleGetFiles }: Props) {
+export default function CreateForm({ selectedFileId, setSelectedFiles, handleGetFiles, editing, setEditing }: Props) {
     return (
-        <form className="create-mode">
-            {selectedFile ? (
+        <form className="explorer-form create-form">
+            {editing ? (
                 <>
                     <button onClick={(ev) => {
                         ev.preventDefault()
                         ev.stopPropagation()
-                        setSelectedFile(null)
-                        setInput("")
+                        setSelectedFiles([])
+                        setEditing(null)
                     }}>
-                        <XIcon />
+                        <XIcon size={24} />
                     </button>
-                    <input 
-                    type="text" 
-                    onChange={ev => setInput(ev.target.value)} 
-                    value={input} 
-                    onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} 
-                    placeholder={`new ${selectedFile.isDir ? "folder" : "file"} at ${selectedFile.id}`} />
+                    <input
+                        type="text"
+                        onChange={ev => setEditing({ ...editing, input: ev.target.value })}
+                        value={editing.input}
+                        onClick={ev => { ev.preventDefault(); ev.stopPropagation() }}
+                        placeholder={`new ${editing.type} at ${selectedFileId}`} 
+                        autoFocus    
+                    />
                     <button onClick={() => {
-                        create(selectedFile.id, selectedFile.isDir!, input)
-                        setSelectedFile(null)
-                        setInput("")
+                        create(selectedFileId, editing.type === "dir", editing.input)
+                        setSelectedFiles([])
+                        setEditing(null)
                         handleGetFiles()
                     }}>
                         Save

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { saveContent } from "../actions"
-import { Loader2, MinusIcon, PlusIcon, Table, XIcon } from "lucide-react"
+import { Loader2, MinusIcon, PlusIcon, XIcon } from "lucide-react"
 import Markdown from "react-markdown"
 
 type Props = {
@@ -15,9 +15,12 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
     const [csvData, setCsvData] = useState<string[][]>([])
     const [isCsv, setIsCsv] = useState(false)
     const [viewMode, setViewMode] = useState<"table" | "raw" | "md" | "edit">("edit")
+    const [loading, setLoading] = useState(true)
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     useEffect(() => {
         async function getContent() {
+            setLoading(true)
             const encodedId = encodeURIComponent(editorOpen.id)
             const res = await fetch(`/api/content/${encodedId}`)
             const text = await res.text()
@@ -26,13 +29,15 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
             const fileExtension = editorOpen.id.split(".").pop()?.toLowerCase()
             if (fileExtension === "csv") {
                 setIsCsv(true)
-                const parsedCsv = parseCSV(text)    
+                const parsedCsv = parseCSV(text)
                 setCsvData(parsedCsv)
                 setViewMode("table")
+                setLoading(false)
             } else {
                 setIsCsv(false)
                 setCsvData([])
                 setViewMode("edit")
+                setLoading(false)
             }
         }
 
@@ -45,6 +50,22 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
             if ((event.ctrlKey || event.metaKey) && event.key === "s") {
                 event.preventDefault()
                 handleSave()
+            }
+            if (viewMode === "edit" && event.key === "Tab") {
+                event.preventDefault()
+
+                const textarea = textareaRef.current
+                if (!textarea) return
+
+                const start = textarea.selectionStart
+                const end = textarea.selectionEnd
+
+                const newContent = content.substring(0, start) + "    " + content.substring(end)
+                setContent(newContent)
+
+                setTimeout(() => {
+                    textarea.selectionStart = textarea.selectionEnd = start + 4
+                }, 0)
             }
         }
 
@@ -110,6 +131,8 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
         setCsvData(newCsvData)
     }
 
+    if (loading) return <div className="editor"><Loader2 className="loader" size={80} /></div>
+
     return (
         <div className="editor">
             <header>
@@ -132,7 +155,7 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
                             }
                         </>
                     }
-                    <button onClick={handleSave}>{saving ? <Loader2 className="loader"/> : "Save"}</button>
+                    <button onClick={handleSave}>{saving ? <Loader2 className="loader" /> : "Save"}</button>
                 </div>
             </header>
             {isCsv ? (
@@ -177,12 +200,12 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
                             <button onClick={addNewRow} style={{ display: "flex", alignItems: "center", width: "100%", padding: 0 }}><PlusIcon size={14} /></button>
                         </div>
                     </div>
-                        : <textarea onChange={(ev) => setContent(ev.target.value)} value={content} />}
+                        : <textarea ref={textareaRef} onChange={(ev) => setContent(ev.target.value)} value={content} />}
                 </>
             ) : (
                 <>
-                    {viewMode === "edit" 
-                        ? <textarea onChange={(ev) => setContent(ev.target.value)} value={content} />
+                    {viewMode === "edit"
+                        ? <textarea ref={textareaRef} onChange={(ev) => setContent(ev.target.value)} value={content} />
                         : <Markdown className="markdown">{content}</Markdown>
                     }
                 </>

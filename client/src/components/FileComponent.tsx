@@ -1,34 +1,33 @@
-import { ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon, XIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon } from "lucide-react"
 import { FileItem } from "./Explorer"
 import { rename } from "../actions"
 import React from "react"
 import CreateForm from "./CreateForm"
 import ProperIcon from "./ProperIcon"
+import RenameForm from "./RenameForm"
 
 type Props = {
     file: FileItem,
     files: FileItem[] | null,
     setFiles: React.Dispatch<React.SetStateAction<FileItem[] | null>>
     handleContextMenu: (ev: React.MouseEvent<HTMLLIElement | HTMLButtonElement>, file: FileItem) => void
-    selectedFile: { id: string; mode: "create" | "rename", isDir: null | boolean } | null
-    setSelectedFile: React.Dispatch<React.SetStateAction<{
-        id: string
-        mode: "create" | "rename"
-        isDir: null | boolean
-    } | null>>
-    input: string
-    setInput: React.Dispatch<React.SetStateAction<string>>
     handleGetFiles: () => void
     setEditorOpen: React.Dispatch<React.SetStateAction<{ open: boolean; id: string } | null>>
     handleDragOver: (ev: React.DragEvent<HTMLLIElement | HTMLUListElement>) => void
     handleDrop: (ev: React.DragEvent<HTMLLIElement | HTMLUListElement>, newDirId: string) => void
     handleDragStart: (ev: React.DragEvent<HTMLLIElement>, fileId: string) => void
-    selectedFiles: string[] | null
-    setSelectedFiles: React.Dispatch<React.SetStateAction<string[] | null>>
+    selectedFiles: string[]
+    setSelectedFiles: React.Dispatch<React.SetStateAction<string[]>>
+    editing: { mode: "create" | "rename", type: "file" | "dir", input: string } | null
+    setEditing: React.Dispatch<React.SetStateAction<{
+        mode: "create" | "rename"
+        type: "file" | "dir"
+        input: string
+    } | null>>
 }
 
 export default function FileComponent(
-    { files, setFiles, file, handleContextMenu, selectedFile, setSelectedFile, input, setInput, handleGetFiles, setEditorOpen, handleDrop, handleDragOver, handleDragStart, selectedFiles, setSelectedFiles }: Props
+    { files, setFiles, file, handleContextMenu, handleGetFiles, setEditorOpen, handleDrop, handleDragOver, handleDragStart, selectedFiles, setSelectedFiles, editing, setEditing }: Props
 ) {
 
     function toggleDir(id: string) {
@@ -50,10 +49,19 @@ export default function FileComponent(
     function handleRename(ev: React.FormEvent) {
         ev.preventDefault()
         ev.stopPropagation()
-        rename(selectedFile!.id, input)
-        setSelectedFile(null)
-        setInput("")
+        if (!selectedFiles || !editing) return
+
+        rename(selectedFiles[0], editing!.input)
+        setSelectedFiles([])
+        setEditing(null)
         handleGetFiles()
+    }
+
+    function closeForm(ev: React.MouseEvent<HTMLButtonElement>) {
+        ev.preventDefault()
+        ev.stopPropagation()
+        setSelectedFiles([])
+        setEditing(null)
     }
 
     function openFile() {
@@ -67,114 +75,80 @@ export default function FileComponent(
         } else return false
     }
 
+    const isRenaming = selectedFiles?.[0] === file.id && editing?.mode === "rename"
 
-    const isRenaming = selectedFile?.id === file.id && selectedFile.mode === "rename"
-
-    return <>
-        {file.isDir ? (
-            <li key={file.id}
-                className="dir"
-                onClick={() => toggleDir(file.id)}
-                onContextMenu={(ev) => handleContextMenu(ev, file)}
-                style={{ paddingLeft: getLevel() * 16 + "px", background: selectedFile?.id === file.id ? "#1a1a1a" : "" }}
-                draggable={!selectedFile}
-                onDrop={(ev) => handleDrop(ev, file.id)}
-                onDragOver={handleDragOver}
-                onDragStart={(e) => handleDragStart(e, file.id)}
-            >
-                <>
-                    {isRenaming ? (
-                        <form>
-                            <button onClick={ev => {
-                                ev.preventDefault()
-                                ev.stopPropagation()
-                                setInput("")
-                                setSelectedFile(null)
-                            }}><XIcon /></button>
-                            <input type="text" onChange={(ev) => setInput(ev.target.value)} value={input} onClick={ev => { ev.preventDefault(); ev.stopPropagation() }} />
-                            <button onClick={handleRename}>
-                                Rename
-                            </button>
-                        </form>
-                    ) : (
+    const Dir = () => (
+        <li key={file.id}
+            className="dir"
+            onClick={() => toggleDir(file.id)}
+            onContextMenu={(ev) => handleContextMenu(ev, file)}
+            style={{ paddingLeft: getLevel() * 16 + "px", background: selectedFiles![0] === file.id ? "#1a1a1a" : "" }}
+            draggable={!selectedFiles}
+            onDrop={(ev) => handleDrop(ev, file.id)}
+            onDragOver={handleDragOver}
+            onDragStart={(e) => handleDragStart(e, file.id)}
+        >
+            <>
+                {isRenaming ? (
+                    <RenameForm closeForm={closeForm} setEditing={setEditing} editing={editing} handleRename={handleRename} />
+                ) : (
+                    <div>
                         <div>
-                            <div>
-                                {file.isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                                <span>{file.name}</span>
-                            </div>
-
-                            <button className="ellipsis" onClick={(ev) => {
-                                ev.preventDefault()
-                                ev.stopPropagation()
-                                handleContextMenu(ev, file)
-                            }} >
-                                <EllipsisVerticalIcon />
-                            </button>
+                            {file.isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                            <span>{file.name}</span>
                         </div>
-                    )
-                    }
-                </>
-                {selectedFile?.mode === "create" && selectedFile.id === file.id && (
-                    <CreateForm selectedFile={selectedFile} handleGetFiles={handleGetFiles} setSelectedFile={setSelectedFile} input={input} setInput={setInput} />
-                )}
-            </li >
-        ) : (
-            <li
-                className={`file ${isSelected(file.id) ? "selected" : ""}`}
-                style={{ paddingLeft: getLevel() * 16 + "px" }}
-                draggable={!selectedFile}
-                onDragStart={(e) => handleDragStart(e, file.id)}
-                onContextMenu={(e) => handleContextMenu(e, file)}
-                onClick={openFile}
-            >
-                <>
-                    {selectedFile?.id === file.id && selectedFile.mode === "rename" ? (
-                        <form onSubmit={(ev) => {
+
+                        <button className="ellipsis" onClick={(ev) => {
                             ev.preventDefault()
                             ev.stopPropagation()
-                            rename(selectedFile.id, input)
-                            setSelectedFile(null)
-                            setInput("")
-                            handleGetFiles()
-                        }}>
-                            <button type="button" onClick={(ev) => {
-                                ev.preventDefault()
-                                ev.stopPropagation()
-                                setInput("")
-                                setSelectedFile(null)
-                                handleGetFiles()
-                            }}>
-                                <XIcon />
-                            </button>
-                            <input
-                                type="text"
-                                onChange={(ev) => setInput(ev.target.value)}
-                                value={input}
-                                onClick={(ev) => { ev.preventDefault(); ev.stopPropagation() }}
-                                autoFocus
-                            />
-                            <button type="submit">Rename</button>
-                        </form>
-                    ) : (
-                        <div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                <ProperIcon name={file.name} />
-                                <span>{file.name}</span>
-                            </div>
-                            <button className="ellipsis" onClick={(ev) => {
-                                ev.preventDefault()
-                                ev.stopPropagation()
-                                handleContextMenu(ev, file)
-                            }} >
-                                <EllipsisVerticalIcon />
-                            </button>
-                        </div>
-                    )
-                    }
+                            handleContextMenu(ev, file)
+                        }} >
+                            <EllipsisVerticalIcon />
+                        </button>
+                    </div>
+                )
+                }
+            </>
+            {editing?.mode === "create" && selectedFiles && selectedFiles[0] === file.id && (
+                <CreateForm selectedFileId={selectedFiles[0]} handleGetFiles={handleGetFiles} setSelectedFiles={setSelectedFiles} editing={editing} setEditing={setEditing} />
+            )}
+        </li >
+    )
 
-                </>
-            </li>
-        )
-        }
+    const File = () => (
+        <li
+            className={`file ${isSelected(file.id) ? "selected" : ""}`}
+            style={{ paddingLeft: getLevel() * 16 + "px" }}
+            draggable={!selectedFiles}
+            onDragStart={(e) => handleDragStart(e, file.id)}
+            onContextMenu={(e) => handleContextMenu(e, file)}
+            onClick={openFile}
+        >
+            <>
+                {selectedFiles && selectedFiles[0] === file.id && editing?.mode === "rename" ? (
+                    <RenameForm closeForm={closeForm} setEditing={setEditing} editing={editing} handleRename={handleRename} />
+                ) : (
+                    <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                            <ProperIcon name={file.name} />
+                            <span>{file.name}</span>
+                        </div>
+                        <button className="ellipsis" onClick={(ev) => {
+                            ev.preventDefault()
+                            ev.stopPropagation()
+                            handleContextMenu(ev, file)
+                        }} >
+                            <EllipsisVerticalIcon />
+                        </button>
+                    </div>
+                )
+                }
+
+            </>
+        </li>
+    )
+
+    return <>
+        {file.isDir ? <Dir /> : <File />}
     </>
 }

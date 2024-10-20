@@ -1,9 +1,10 @@
 import React, { Fragment, SetStateAction, useEffect, useState } from "react"
-import { create, move, rename, upload } from "../actions.ts"
+import { create, move, remove, rename, upload } from "../actions.ts"
 import ContextMenu from "./ContextMenu"
 import CreateForm from "./CreateForm.tsx"
 import FileComponent from "./FileComponent.tsx"
 import { FilePlusIcon, FolderPlusIcon, Loader2 } from "lucide-react"
+import Dropzone from "./Dropzone.tsx"
 
 export type FileItem = {
     isDir: boolean
@@ -20,9 +21,8 @@ export default function Explorer({ setEditorOpen }: Props) {
     const [files, setFiles] = useState<FileItem[] | null>(null)
     const [loading, setLoading] = useState(true)
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: FileItem | null, isDir: boolean } | null>(null)
-    const [selectedFile, setSelectedFile] = useState<{ id: string; mode: "create" | "rename", isDir: null | boolean } | null>(null)
-    const [selectedFiles, setSelectedFiles] = useState<string[] | null>(null)
-    const [input, setInput] = useState("")
+    const [selectedFiles, setSelectedFiles] = useState<string[]>([])
+    const [editing, setEditing] = useState<{ mode: "create" | "rename", type: "file" | "dir", input: string } | null>(null)
     const [error, setError] = useState("")
 
     async function handleGetFiles() {
@@ -46,6 +46,12 @@ export default function Explorer({ setEditorOpen }: Props) {
     }, [])
 
 
+    function isDir(id: string) {
+        const file = files?.find(file => file.id === id)
+        if (file?.isDir) return true
+        else return false
+    }
+
     //KEYS
     useEffect(() => {
         const handleOutsideClick = () => {
@@ -58,33 +64,31 @@ export default function Explorer({ setEditorOpen }: Props) {
             if (ev.key === "Escape" && contextMenu) {
                 setContextMenu(null)
             }
-            if (ev.key === "Escape" && selectedFile) {
-                setSelectedFile(null)
-                setInput("")
+            if (ev.key === "Escape" && selectedFiles) {
+                setSelectedFiles([])
+                setEditing(null)
             }
-            if (ev.key === "Enter" && selectedFile) {
-                if (selectedFile.mode === "rename") {
-                    rename(selectedFile.id, input)
-                } else {
-                    create(selectedFile.id, selectedFile.isDir!, input)
+            if (ev.key === "Enter" && selectedFiles && editing) {
+                if (editing.mode === "rename") {
+                    rename(selectedFiles[0], editing.input)
+                } else if (editing.mode === "create") {
+                    create(selectedFiles[0], isDir(selectedFiles[0]), editing.input)
                 }
 
-                setSelectedFile(null)
-                setInput("")
+                setSelectedFiles([])
+                setEditing(null)
                 handleGetFiles()
             }
         }
 
-        // Add event listener for clicks
         document.addEventListener('click', handleOutsideClick)
         document.addEventListener('keydown', handleEscapeKey)
 
-        // Cleanup event listener
         return () => {
             document.removeEventListener('click', handleOutsideClick)
             document.removeEventListener('keydown', handleEscapeKey)
         }
-    }, [contextMenu, selectedFile, input])
+    }, [contextMenu, selectedFiles, editing, editing?.input])
 
 
 
@@ -102,15 +106,15 @@ export default function Explorer({ setEditorOpen }: Props) {
         })
     }
 
-    function setCreate(type: "file" | "folder") {
+    function setForm(type: "file" | "dir", mode: "rename" | "create") {
         let id = ""
 
         if (contextMenu !== null) {
             id = contextMenu?.file?.id!
         }
 
-        setSelectedFile({ id, mode: "create", isDir: type === "file" ? false : true })
-        setInput("")
+        setSelectedFiles([id])
+        setEditing({ mode, type, input: "" })
     }
 
 
@@ -144,17 +148,17 @@ export default function Explorer({ setEditorOpen }: Props) {
     function isParentOpen(id: string): boolean {
         const lastSlashIndex = id.lastIndexOf("/")
 
-        if (lastSlashIndex === -1) return true //it's a root level file
+        if (lastSlashIndex === -1) return true //root level file
 
         const parentId = id.substring(0, lastSlashIndex)
-        const parent = files?.find((file) => parentId === file.id) //get parent     
+        const parent = files?.find((file) => parentId === file.id) //parent     
 
         return parent?.isOpen ? isParentOpen(parent.id) : false  //check parent dirs recursively
     }
 
     if (loading) {
         return <div className="errscreen">
-            <Loader2 className="loader" style={{ width: "80px", height: "80px" }} />
+            <Loader2 className="loader" size={80} />
         </div>
     }
 
@@ -167,22 +171,38 @@ export default function Explorer({ setEditorOpen }: Props) {
         )
     }
 
+    async function handleDelete() {
+        const id = contextMenu?.file?.id
+        if (!id) {
+            return
+        }
+        try {
+            await remove(id)
+            setContextMenu(null)
+            handleGetFiles()
+        } catch (error) {
+            console.error("Failed to delete file:", error)
+        }
+    }
+
     return (
         <>
             <ul className="explorer" onDrop={(ev) => handleDrop(ev, "")} onDragOver={handleDragOver}>
-                <label htmlFor="fileinput" className="fileinput">Click or drop your files here</label>
-                <input type="file" multiple onChange={(ev) => { upload(ev); handleGetFiles() }} hidden id="fileinput" />
+                <Dropzone handleGetFiles={handleGetFiles}/>
 
-                {selectedFile?.id === "" && selectedFile.mode === "create" ?
-                    <CreateForm selectedFile={selectedFile} setSelectedFile={setSelectedFile} setInput={setInput} input={input} handleGetFiles={handleGetFiles} />
-                    : <div style={{ display: "flex", justifyContent: "center", gap: "10px", padding: "8px 0" }} className="topbuttons">
-                        <button onClick={() => setCreate("file")} style={{ fontSize: "18px", display: "flex", gap: "4px" }}>
-                            <FilePlusIcon /> New file
-                        </button>
-                        <button onClick={() => setCreate("folder")} style={{ fontSize: "18px", display: "flex", gap: "4px" }}>
-                            <FolderPlusIcon /> New folder
-                        </button>
-                    </div>
+                {/* top buttons */}
+                {selectedFiles && selectedFiles[0] === "" && editing?.mode === "create" ?
+                    <CreateForm selectedFileId={selectedFiles[0]} setSelectedFiles={setSelectedFiles} handleGetFiles={handleGetFiles} editing={editing} setEditing={setEditing} />
+                    : (
+                        <div style={{ display: "flex", justifyContent: "center", gap: "10px", padding: "8px 0" }} className="topbuttons">
+                            <button onClick={() => setForm("file", "create")}>
+                                <FilePlusIcon /> New file
+                            </button>
+                            <button onClick={() => setForm("dir", "create")}>
+                                <FolderPlusIcon /> New folder
+                            </button>
+                        </div>
+                    )
                 }
 
                 {files?.map(file => (
@@ -193,14 +213,12 @@ export default function Explorer({ setEditorOpen }: Props) {
                                 setSelectedFiles={setSelectedFiles}
                                 setEditorOpen={setEditorOpen}
                                 handleGetFiles={handleGetFiles}
-                                input={input}
-                                setInput={setInput}
+                                editing={editing}
+                                setEditing={setEditing}
                                 file={file}
                                 files={files}
                                 setFiles={setFiles}
                                 handleContextMenu={handleContextMenu}
-                                selectedFile={selectedFile}
-                                setSelectedFile={setSelectedFile}
                                 handleDragStart={handleDragStart}
                                 handleDragOver={handleDragOver}
                                 handleDrop={handleDrop} />}
@@ -209,12 +227,10 @@ export default function Explorer({ setEditorOpen }: Props) {
             </ul>
             {contextMenu && (
                 <ContextMenu
-                    onCreate={setCreate}
+                    setForm={setForm}
                     contextMenu={contextMenu}
                     setContextMenu={setContextMenu}
-                    setSelectedFile={setSelectedFile}
-                    setInput={setInput}
-                    handleGetFiles={handleGetFiles}
+                    handleDelete={handleDelete}
                 />
             )}
         </>

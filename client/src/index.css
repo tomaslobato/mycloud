@@ -167,19 +167,23 @@ header h1 {
   color: white;
 }
 
-.create-mode {
+.explorer-form {
   display: flex;
-  padding: 8px 0;
+  padding: 0;
   gap: 6px;
   justify-content: center;
   width: 100%;
 }
 
-.create-mode input {
-  width:100%;
+.create-form {
+  padding: 8px 0;
 }
 
-.create-mode button {
+.explorer-form input {
+  width: 100%;
+}
+
+.explorer-form button {
   padding: 4px;
   font-size: 18px;
 }
@@ -287,6 +291,12 @@ header h1 {
   background-color: #1a1a1a;
 }
 
+.topbuttons button {
+  font-size: 18px;
+  display: flex;
+  gap: 4px;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -296,29 +306,26 @@ header h1 {
   }
 }
 
-@media screen and (max-width: 600px) {
-  .create-mode input {
-    width: 65%;
-  }
-
-  .topbuttons button {
-    font-size: 16px;
-  }
-
-  .create-mode button {
-    font-size: 14px;
-  }
-
-  .mobile-hidden {
-    display: none;
-  }
-
+@media screen and (max-width: 1500px) {
   .editor {
     width: 100%;
   }
+  .mobile-hidden {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .topbuttons button {
+    font-size: 16px;
+  }
+  .explorer-form button {
+    font-size: 14px;
+    padding: 4px;
+  }
 
   .editor header h1 {
-    font-size: 16px;
+    font-size: 22px;
   }
 
   .editor header button {
