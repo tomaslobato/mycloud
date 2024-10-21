@@ -307,15 +307,10 @@ header h1 {
 }
 
 @media screen and (max-width: 1500px) {
-  .editor {
-    width: 100%;
-  }
   .mobile-hidden {
     display: none;
   }
-}
 
-@media screen and (max-width: 600px) {
   .topbuttons button {
     font-size: 16px;
   }

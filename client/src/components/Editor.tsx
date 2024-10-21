@@ -134,10 +134,10 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
     if (loading) return <div className="editor"><Loader2 className="loader" size={80} /></div>
 
     return (
-        <div className="editor">
+        <div className="editor" style={{width: windowWidth < 1500 ? "100%" : "80%"}}>
             <header>
                 <div>
-                    <button onClick={() => setEditorOpen({ open: false, id: "" })}><XIcon size={windowWidth < 600 ? 24 : 32} /></button>
+                    <button onClick={() => setEditorOpen({ open: false, id: "" })}><XIcon size={windowWidth < 600 ? 26 : 32} /></button>
                     <h1>{getName(editorOpen.id)}</h1>
                 </div>
                 <div>

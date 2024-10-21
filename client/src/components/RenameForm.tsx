@@ -12,8 +12,8 @@ export default function RenameForm({ editing, setEditing, handleRename, closeFor
     if (!editing) return null
 
     return (
-        <form onSubmit={handleRename} className="explorer-form">
-            <button onClick={closeForm}><XIcon size={24} /></button>
+        <form className="explorer-form">
+            <button type="button" onClick={closeForm}><XIcon size={24} /></button>
             <input
                 type="text"
                 onChange={(ev) => setEditing({ ...editing!, input: ev.target.value })}
@@ -21,7 +21,7 @@ export default function RenameForm({ editing, setEditing, handleRename, closeFor
                 onClick={ev => { ev.preventDefault(); ev.stopPropagation() }}
                 autoFocus
             />
-            <button type="submit">
+            <button type="submit" onClick={handleRename}>
                 Rename
             </button>
         </form>

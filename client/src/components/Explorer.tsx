@@ -52,6 +52,7 @@ export default function Explorer({ setEditorOpen }: Props) {
         else return false
     }
 
+
     //KEYS
     useEffect(() => {
         const handleOutsideClick = () => {
@@ -65,19 +66,24 @@ export default function Explorer({ setEditorOpen }: Props) {
                 setContextMenu(null)
             }
             if (ev.key === "Escape" && selectedFiles) {
-                setSelectedFiles([])
                 setEditing(null)
             }
             if (ev.key === "Enter" && selectedFiles && editing) {
                 if (editing.mode === "rename") {
                     rename(selectedFiles[0], editing.input)
                 } else if (editing.mode === "create") {
-                    create(selectedFiles[0], isDir(selectedFiles[0]), editing.input)
+                    create(selectedFiles[0], editing.type === "dir", editing.input)
                 }
 
                 setSelectedFiles([])
                 setEditing(null)
                 handleGetFiles()
+            }
+            if (ev.key === "F2") {
+                console.log("hit f2")
+                if (selectedFiles[0]) {
+                    setForm(isDir(selectedFiles[0]) ? "dir" : "file", "rename")
+                }
             }
         }
 
@@ -96,7 +102,8 @@ export default function Explorer({ setEditorOpen }: Props) {
     function handleContextMenu(ev: React.MouseEvent<HTMLLIElement | HTMLButtonElement>, file: FileItem) {
         ev.preventDefault()
         ev.stopPropagation()
-        const menuWidth = 150 // Adjust based on your context menu width
+        setSelectedFiles([file.id])
+        const menuWidth = 120 // Adjust based on your context menu width
         const newX = ev.clientX - menuWidth < 0 ? 0 : ev.clientX - menuWidth // Adjust the x position to the left
         setContextMenu({
             x: newX,
@@ -107,14 +114,11 @@ export default function Explorer({ setEditorOpen }: Props) {
     }
 
     function setForm(type: "file" | "dir", mode: "rename" | "create") {
-        let id = ""
+        const file = files?.find(file => file.id === selectedFiles[0])
 
-        if (contextMenu !== null) {
-            id = contextMenu?.file?.id!
-        }
 
-        setSelectedFiles([id])
-        setEditing({ mode, type, input: "" })
+        if (mode === "rename") setEditing({ mode, type, input: file?.name! })
+        else setEditing({ mode, type, input: "" })
     }
 
 
@@ -188,7 +192,7 @@ export default function Explorer({ setEditorOpen }: Props) {
     return (
         <>
             <ul className="explorer" onDrop={(ev) => handleDrop(ev, "")} onDragOver={handleDragOver}>
-                <Dropzone handleGetFiles={handleGetFiles}/>
+                <Dropzone handleGetFiles={handleGetFiles} />
 
                 {/* top buttons */}
                 {selectedFiles && selectedFiles[0] === "" && editing?.mode === "create" ?
@@ -221,7 +225,11 @@ export default function Explorer({ setEditorOpen }: Props) {
                                 handleContextMenu={handleContextMenu}
                                 handleDragStart={handleDragStart}
                                 handleDragOver={handleDragOver}
-                                handleDrop={handleDrop} />}
+                                handleDrop={handleDrop}
+
+                            />
+
+                        }
                     </Fragment>
                 ))}
             </ul>

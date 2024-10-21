@@ -30,7 +30,9 @@ export default function CreateForm({ selectedFileId, setSelectedFiles, handleGet
                         placeholder={`new ${editing.type} at ${selectedFileId}`} 
                         autoFocus    
                     />
-                    <button onClick={() => {
+                    <button onClick={(ev) => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
                         create(selectedFileId, editing.type === "dir", editing.input)
                         setSelectedFiles([])
                         setEditing(null)

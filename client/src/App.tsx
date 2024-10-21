@@ -12,8 +12,7 @@ export default function App() {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  const isMobile = windowWidth < 600
-
+  const isMobile = windowWidth < 1500
 
   return (
     <>

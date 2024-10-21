@@ -51,7 +51,7 @@ export default function FileComponent(
         ev.stopPropagation()
         if (!selectedFiles || !editing) return
 
-        rename(selectedFiles[0], editing!.input)
+        rename(selectedFiles[0], editing.input)
         setSelectedFiles([])
         setEditing(null)
         handleGetFiles()
