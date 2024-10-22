@@ -2,7 +2,7 @@ import { XIcon } from "lucide-react"
 import { create } from "../actions"
 
 type Props = {
-    selectedFileId: string
+    selectedFileId: string | null
     setSelectedFiles: React.Dispatch<React.SetStateAction<string[]>>
     editing: { mode: "rename" | "create", type: "file" | "dir", input: string } | null
     setEditing: React.Dispatch<React.SetStateAction<{ mode: "rename" | "create", type: "file" | "dir", input: string } | null>>
@@ -12,7 +12,7 @@ type Props = {
 export default function CreateForm({ selectedFileId, setSelectedFiles, handleGetFiles, editing, setEditing }: Props) {
     return (
         <form className="explorer-form create-form">
-            {editing ? (
+            {editing && editing.mode === "create" ? (
                 <>
                     <button onClick={(ev) => {
                         ev.preventDefault()
@@ -27,13 +27,13 @@ export default function CreateForm({ selectedFileId, setSelectedFiles, handleGet
                         onChange={ev => setEditing({ ...editing, input: ev.target.value })}
                         value={editing.input}
                         onClick={ev => { ev.preventDefault(); ev.stopPropagation() }}
-                        placeholder={`new ${editing.type} at ${selectedFileId}`} 
-                        autoFocus    
+                        placeholder={`new ${editing.type} at ${selectedFileId ? selectedFileId : "Root"}`}
+                        autoFocus
                     />
-                    <button onClick={(ev) => {
+                    <button onClick={async (ev) => {
                         ev.preventDefault()
                         ev.stopPropagation()
-                        create(selectedFileId, editing.type === "dir", editing.input)
+                        await create(selectedFileId ? selectedFileId : "", editing.type === "dir", editing.input)
                         setSelectedFiles([])
                         setEditing(null)
                         handleGetFiles()

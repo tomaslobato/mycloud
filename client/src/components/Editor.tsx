@@ -134,7 +134,7 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
     if (loading) return <div className="editor"><Loader2 className="loader" size={80} /></div>
 
     return (
-        <div className="editor" style={{width: windowWidth < 1500 ? "100%" : "80%"}}>
+        <div className="editor" style={{ width: windowWidth < 1500 ? "100%" : "80%" }}>
             <header>
                 <div>
                     <button onClick={() => setEditorOpen({ open: false, id: "" })}><XIcon size={windowWidth < 600 ? 26 : 32} /></button>
@@ -206,7 +206,7 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
                 <>
                     {viewMode === "edit"
                         ? <textarea ref={textareaRef} onChange={(ev) => setContent(ev.target.value)} value={content} />
-                        : <Markdown className="markdown">{content}</Markdown>
+                        : <Markdown className="markdown">{content.replace(/\n/g, '  \n')}</Markdown>
                     }
                 </>
             )

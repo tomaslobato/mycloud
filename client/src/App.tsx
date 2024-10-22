@@ -22,10 +22,6 @@ export default function App() {
           width: editorOpen?.open ? "20%" : "100%",
           height: "100%"
         }}>
-
-        <header>
-          <h1>MyCloud</h1>
-        </header>
         <Explorer setEditorOpen={setEditorOpen} />
       </div>
       {editorOpen?.open ? <Editor editorOpen={editorOpen} setEditorOpen={setEditorOpen} windowWidth={windowWidth} /> : null}

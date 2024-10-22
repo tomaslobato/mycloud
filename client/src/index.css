@@ -67,16 +67,16 @@ header h1 {
 }
 
 .explorer .topbuttons {
-  display: "flex";
-  justify-content: "center";
-  gap: "10px";
-  padding: "8px 0";
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
 }
 
 .explorer .topbuttons button {
-  font-size: "18px";
-  display: "flex";
-  gap: "4px";
+  font-size: 18px;
+  display: flex;
+  gap: 4px;
 }
 
 .explorer li {
@@ -86,10 +86,10 @@ header h1 {
   font-size: 18px;
 }
 
-.explorer li div {
+.explorer li>div {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .explorer li:hover {
@@ -107,6 +107,21 @@ header h1 {
   width: 94%;
   box-sizing: border-box;
   border-radius: 8px;
+}
+
+.explorer li .fileheader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: start;
+  width: 90%;
+}
+
+.explorer li .fileheader span {
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .explorer li .ellipsis {
@@ -266,6 +281,19 @@ header h1 {
   box-sizing: border-box;
 }
 
+.markdown p {
+  margin: 4px 0;
+}
+
+.markdown ul {
+  padding: 0 16px;
+  margin: 4px 0;
+}
+
+.markdown hr {
+  color: rgb(199, 199, 199)
+}
+
 .errscreen {
   display: flex;
   height: 60vh;
@@ -307,6 +335,10 @@ header h1 {
 }
 
 @media screen and (max-width: 1500px) {
+  textarea {
+    font-size: 14px;
+  }
+
   .mobile-hidden {
     display: none;
   }

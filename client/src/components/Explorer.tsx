@@ -1,5 +1,5 @@
 import React, { Fragment, SetStateAction, useEffect, useState } from "react"
-import { create, move, remove, rename, upload } from "../actions.ts"
+import { create, move, remove, rename } from "../actions.ts"
 import ContextMenu from "./ContextMenu"
 import CreateForm from "./CreateForm.tsx"
 import FileComponent from "./FileComponent.tsx"
@@ -61,18 +61,21 @@ export default function Explorer({ setEditorOpen }: Props) {
             }
         }
 
-        const handleEscapeKey = (ev: KeyboardEvent) => {
+        const handleEscapeKey = async (ev: KeyboardEvent) => {
             if (ev.key === "Escape" && contextMenu) {
                 setContextMenu(null)
             }
             if (ev.key === "Escape" && selectedFiles) {
                 setEditing(null)
             }
+            if (ev.key === "Del" && selectedFiles[0]) {
+                remove(selectedFiles[0])
+            }
             if (ev.key === "Enter" && selectedFiles && editing) {
                 if (editing.mode === "rename") {
-                    rename(selectedFiles[0], editing.input)
+                    await rename(selectedFiles[0], editing.input)
                 } else if (editing.mode === "create") {
-                    create(selectedFiles[0], editing.type === "dir", editing.input)
+                    await create(selectedFiles[0], editing.type === "dir", editing.input)
                 }
 
                 setSelectedFiles([])
@@ -114,12 +117,14 @@ export default function Explorer({ setEditorOpen }: Props) {
     }
 
     function setForm(type: "file" | "dir", mode: "rename" | "create") {
-        const file = files?.find(file => file.id === selectedFiles[0])
-
-
-        if (mode === "rename") setEditing({ mode, type, input: file?.name! })
-        else setEditing({ mode, type, input: "" })
+        if (mode === "create") {
+            setEditing({ mode, type, input: "" })
+        } else if (mode === "rename" && selectedFiles[0]) {
+            const file = files?.find(file => file.id === selectedFiles[0])
+            setEditing({ mode, type, input: file?.name || "" })
+        }
     }
+
 
 
     //DRAG AND DROP
@@ -191,11 +196,11 @@ export default function Explorer({ setEditorOpen }: Props) {
 
     return (
         <>
-            <ul className="explorer" onDrop={(ev) => handleDrop(ev, "")} onDragOver={handleDragOver}>
+            <ul className="explorer" onDrop={(ev) => handleDrop(ev, "")} onDragOver={handleDragOver} onClick={() => setSelectedFiles([])}>
                 <Dropzone handleGetFiles={handleGetFiles} />
 
                 {/* top buttons */}
-                {selectedFiles && selectedFiles[0] === "" && editing?.mode === "create" ?
+                {selectedFiles.length === 0 && editing?.mode === "create" ?
                     <CreateForm selectedFileId={selectedFiles[0]} setSelectedFiles={setSelectedFiles} handleGetFiles={handleGetFiles} editing={editing} setEditing={setEditing} />
                     : (
                         <div style={{ display: "flex", justifyContent: "center", gap: "10px", padding: "8px 0" }} className="topbuttons">
