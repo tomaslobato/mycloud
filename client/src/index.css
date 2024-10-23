@@ -86,7 +86,7 @@ header h1 {
   font-size: 18px;
 }
 
-.explorer li>div {
+.explorer li > div {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -291,7 +291,7 @@ header h1 {
 }
 
 .markdown hr {
-  color: rgb(199, 199, 199)
+  color: rgb(199, 199, 199);
 }
 
 .errscreen {
@@ -323,6 +323,35 @@ header h1 {
   font-size: 18px;
   display: flex;
   gap: 4px;
+}
+
+.login-screen {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-screen form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 350px;
+}
+
+.login-screen form label {
+  font-size: 22px;
+}
+
+.login-screen form input {
+  font-size: 24px;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.login-screen form button {
+  font-size: 22px;
 }
 
 @keyframes spin {

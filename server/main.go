@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"github.com/tomaslobato/mycloud/auth"
 	"github.com/tomaslobato/mycloud/handlers"
 )
 
@@ -29,6 +30,8 @@ func main() {
 	app.Patch("/api/content/:id", handlers.SaveContent)
 
 	app.Delete("/api/delete/:id", handlers.Delete)
+
+	app.Post("/api/login", auth.HandleLogin)
 
 	app.Listen(":5000")
 }
