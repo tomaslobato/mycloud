@@ -1,4 +1,4 @@
-.PHONY: dev run build bin setup clean tunnel
+.PHONY: dev run build setup clean tunnel
 
 # Binary names
 BINARY=mycloud
@@ -12,16 +12,11 @@ build: bin
 	cd client && node esbuild.js
 	cd server && go build -o ../bin/$(BINARY) ./cmd/mycloud/main.go
 	cd server && go build -o ../bin/$(SETUP_BINARY) ./cmd/setup/main.go
-
-bin:
-	mkdir -p bin
-
+	
 setup: 
-	cd server && go build -o ../bin/$(SETUP_BINARY) ./cmd/setup/main.go
 	cd bin && ./$(SETUP_BINARY)
 
 run:
-	cd server && go build -o ../bin/$(BINARY) ./cmd/mycloud/main.go
 	cd bin && ./$(BINARY)
 
 tunnel:
