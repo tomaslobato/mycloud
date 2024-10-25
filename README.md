@@ -1,10 +1,15 @@
 ## MyCloud
-Self hosted secure cloud/text editor application.
+Securely host a Web UI for a folder in your PC/Homelab, making it your cloud for editing, reading or playing your files.
 
-## Getting your self hosted cloud running
+### Getting your cloud running
 1. Get the docker image: tomaslobato/mycloud.
+
 2. Run `make setup`, you'll be asked to select a folder and set your password.
-3. Run `make run` check if it's running accessing the IP address logged from a browser on your local network.
-4. Log in to [cloudflare]("https://cloudflare.com") and [install cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/)
-5. Run `make tunnel` to create a cloudflare tunnel, you can set a specific domain or use the free ones cloudflare provides.
-6. Enjoy accessing, editing or playing your files privately from anywhere in the world.
+
+3. Allow port :5555 in your firewall with `ufw allow 5555`
+
+4. And do `make run`, try to access it from your local network at `192.168.<your machine local IP>:5555`
+
+5. Run `make tunnel` to create a free cloudflare tunnel, wait 5 seconds and access the random URL.
+
+6. Enjoy your files privately from anywhere in the world from your new URL.

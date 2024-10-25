@@ -1,4 +1,4 @@
-.PHONY: dev run build setup clean tunnel
+.PHONY: dev run build setup clean tunnel stop
 
 # Binary names
 BINARY=mycloud
@@ -17,7 +17,11 @@ setup:
 	cd bin && ./$(SETUP_BINARY)
 
 run:
-	cd bin && ./$(BINARY)
+	docker compose up -d
+	@echo "\nRunning at http://localhost:5555\n"
+
+stop:
+	docker compose down
 
 tunnel:
 	@if ! command -v cloudflared >/dev/null 2>&1; then \
@@ -27,7 +31,7 @@ tunnel:
 	fi
 	@echo "Starting Cloudflare tunnel..."
 	@echo "WARNING: wait 5 seconds after the link is shown or it may not work"
-	@cloudflared tunnel --url http://localhost:5000 2>&1 | grep -o 'https://.*.trycloudflare.com'
+	@cloudflared tunnel --url http://localhost:5555 2>&1 | grep -o 'https://.*.trycloudflare.com'
 
 clean:
 	rm -rf bin

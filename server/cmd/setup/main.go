@@ -29,7 +29,7 @@ func main() {
 
 	var rootDir string
 	for {
-		fmt.Println("\nEnter the path for your MyCloud storage (empty for ~/mycloud): ")
+		fmt.Printf("\nEnter the path for your MyCloud storage (empty for ~/mycloud): ")
 		input, _ := reader.ReadString('\n')
 		rootDir = strings.TrimSpace(input)
 
@@ -52,7 +52,7 @@ func main() {
 
 		_, err = os.Stat(rootDir)
 		if os.IsNotExist(err) {
-			fmt.Println("Dir doesn't exist, create it? (y/n):")
+			fmt.Printf("Dir doesn't exist, create it? (y/n):")
 			confirm, _ := reader.ReadString('\n')
 			if strings.ToLower(strings.TrimSpace(confirm)) == "y" {
 				err := os.MkdirAll(rootDir, 0755)

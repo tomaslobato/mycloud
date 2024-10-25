@@ -1,13 +1,16 @@
-FROM golang:1.23-alpine
-
-RUN apk add --no-cache make
+FROM alpine:latest
 
 WORKDIR /app
 
-COPY . .
+RUN apk add --no-cache ca-certificates libc6-compat
 
-RUN cd server && go mod download        
+COPY ./client/dist /app/client/dist
+COPY ./bin/mycloud /app/bin/mycloud
+COPY ./bin/.env /app/bin/.env
+COPY ./bin/start.sh /app/bin/start.sh 
 
-EXPOSE 5000
+RUN chmod +x /app/bin/start.sh  
 
-CMD ["make", "run"]
+EXPOSE 5555
+
+CMD ["/app/bin/start.sh"]
