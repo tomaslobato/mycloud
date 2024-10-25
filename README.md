@@ -2,7 +2,7 @@
 Securely host a Web UI for a folder in your PC/Homelab, making it your cloud for editing, reading or playing your files.
 
 ### Getting your cloud running
-1. Clone the repo: `git clone https://github.com/tomaslobato/mycloud.git`
+1. Clone the repo: `git clone https://github.com/tomaslobato/mycloud.git && cd mycloud`
 
 2. Run `make setup`, you'll be asked to select a folder and set your password.
 
