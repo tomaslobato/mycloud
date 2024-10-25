@@ -233,13 +233,24 @@ header h1 {
 .editor header {
   display: flex;
   justify-content: space-between;
-  padding: 20px 10px;
+  box-sizing: border-box;
   width: 100%;
+  padding: 20px 0;
 }
 
 .editor header button {
   font-size: 22px;
   border: none;
+}
+
+.editor header .x-div {
+  width: 75%;
+}
+
+.editor header div h1 {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .table-container {

@@ -71,7 +71,10 @@ export default function Explorer({ setEditorOpen }: Props) {
             if (ev.key === "Del" && selectedFiles[0]) {
                 remove(selectedFiles[0])
             }
-            if (ev.key === "Enter" && selectedFiles && editing) {
+            if (ev.key === "Enter" && editing) {
+                if (!selectedFiles[0]) {
+                    await create("", editing.type === "dir", editing.input)
+                }
                 if (editing.mode === "rename") {
                     await rename(selectedFiles[0], editing.input)
                 } else if (editing.mode === "create") {
