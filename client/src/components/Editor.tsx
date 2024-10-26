@@ -12,41 +12,66 @@ type Props = {
 export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props) {
     const [content, setContent] = useState("")
     const [saving, setSaving] = useState(false)
-    const [csvData, setCsvData] = useState<string[][]>([])
-    const [isCsv, setIsCsv] = useState(false)
     const [viewMode, setViewMode] = useState<"table" | "raw" | "md" | "edit">("edit")
     const [loading, setLoading] = useState(true)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const [isImage, setIsImage] = useState(false)
+    const [isVideo, setIsVideo] = useState(false)
+    const [isCsv, setIsCsv] = useState(false)
+    const [csvData, setCsvData] = useState<string[][]>([])
 
     useEffect(() => {
         async function getContent() {
             setLoading(true)
             const encodedId = encodeURIComponent(editorOpen.id)
             const res = await fetch(`/api/content/${encodedId}`)
-            const text = await res.text()
-            setContent(text)
 
             const fileExtension = editorOpen.id.split(".").pop()?.toLowerCase()
-            if (fileExtension === "csv") {
-                setIsCsv(true)
-                const parsedCsv = parseCSV(text)
-                setCsvData(parsedCsv)
-                setViewMode("table")
+            const isImageFile = ["jpg", "jpeg", "png", "gif", "webp", "img"].includes(fileExtension || "")
+            const isVideoFile = ["mp4", "mkv"].includes(fileExtension || "")
+
+            if (isImageFile) {
+                setIsImage(true)
+                setContent("")
+                setLoading(false)
+            } else if (isVideoFile) {
+                setIsVideo(true)
+                setContent("")
                 setLoading(false)
             } else {
-                setIsCsv(false)
-                setCsvData([])
-                setViewMode("edit")
-                setLoading(false)
+                setIsImage(false)
+                const text = await res.text()
+                setContent(text)
+                if (fileExtension === "csv") {
+                    setIsCsv(true)
+                    const parsedCsv = parseCSV(text)
+                    setCsvData(parsedCsv)
+                    setViewMode("table")
+                    setLoading(false)
+                } else {
+                    setIsCsv(false)
+                    setCsvData([])
+                    setViewMode("edit")
+                    setLoading(false)
+                }
             }
+
+
         }
 
         getContent()
     }, [editorOpen.id])
 
+    useEffect(() => {
+        if (isCsv) {
+            const csvContent = stringifyCSV(csvData)
+            setContent(csvContent)
+        }
+    }, [csvData, isCsv])
+
     //KEYS
     useEffect(() => {
-        function handleKeyDown(event: KeyboardEvent) {
+        async function handleKeyDown(event: KeyboardEvent) {
             if ((event.ctrlKey || event.metaKey) && event.key === "s") {
                 event.preventDefault()
                 handleSave()
@@ -74,7 +99,7 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
         return () => {
             window.removeEventListener("keydown", handleKeyDown)
         }
-    }, [editorOpen.id, content])
+    }, [editorOpen.id, content, viewMode])
 
     function getName(id: string) {
         const lastSlashIndex = id.lastIndexOf("/")
@@ -87,8 +112,8 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
     async function handleSave() {
         try {
             setSaving(true)
-            const data = isCsv ? stringifyCSV(csvData) : content
-            await saveContent(editorOpen.id, data)
+            const dataToSave = isCsv && viewMode === "table" ? stringifyCSV(csvData) : content
+            await saveContent(editorOpen.id, dataToSave)
         } catch (error) {
             console.error("Error saving content:", error)
         } finally {
@@ -131,7 +156,7 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
         setCsvData(newCsvData)
     }
 
-    if (loading) return <div className="editor"><Loader2 className="loader" size={80} /></div>
+    if (loading) return <div className="loading-screen"><Loader2 className="loader" size={80} /></div>
 
     return (
         <div className="editor" style={{ width: windowWidth < 1500 ? "100%" : "80%" }}>
@@ -140,7 +165,7 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
                     <button onClick={() => setEditorOpen({ open: false, id: "" })}><XIcon size={windowWidth < 600 ? 26 : 32} /></button>
                     <h1>{getName(editorOpen.id)}</h1>
                 </div>
-                <div>
+                {(!isImage && !isVideo) && <div>
                     {isCsv ?
                         <>
                             {viewMode === "raw"
@@ -156,9 +181,25 @@ export default function Editor({ editorOpen, setEditorOpen, windowWidth }: Props
                         </>
                     }
                     <button onClick={handleSave}>{saving ? <Loader2 className="loader" /> : "Save"}</button>
-                </div>
+                </div>}
             </header>
-            {isCsv ? (
+            {isImage ? (
+                <div className="image-container">
+                    <img
+                        src={`/api/content/${encodeURIComponent(editorOpen.id)}`}
+                        alt={getName(editorOpen.id)}
+                    />
+                </div>
+            ) : isVideo ? (
+                <div className="video-container" >
+                    <video
+                        src={`/api/content/${encodeURIComponent(editorOpen.id)}`}
+                        controls
+                        autoPlay={false}
+                        preload="metadata"
+                    />
+                </div>
+            ) : isCsv ? (
                 <>
                     {viewMode === "table" ? <div className="table-container">
                         <div style={{ display: "flex" }}>

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { upload } from "../actions"
-import { Loader2 } from "lucide-react"
+import { Loader, Loader2 } from "lucide-react"
 
 type Props = {
     handleGetFiles: () => void
@@ -35,19 +35,21 @@ export default function Dropzone({ handleGetFiles }: Props) {
             e.currentTarget.classList.remove('dragover')
         }}
     >
-        {uploading ? <Loader2 className="loader" size={32} /> : (
-            <>
-                <label htmlFor="fileinput"
-                    className="fileinput">Click or drop your files here</label>
-                <input
-                    type="file"
-                    multiple
-                    onChange={(ev) => { handleUpload(ev.target.files!); ev.target.files = null }}
-                    hidden
-                    id="fileinput"
-                />
-            </>
-        )}
+        <>
+            <label htmlFor="fileinput"
+                className="fileinput">
+                    {uploading ? <Loader2 className="loader" size={32} /> : "Click or drop your files here"}
+            </label>
+            <input
+                disabled={uploading}
+                type="file"
+                multiple
+                onChange={(ev) => { handleUpload(ev.target.files!); ev.target.files = null }}
+                hidden
+                id="fileinput"
+            />
+        </>
 
-    </div>)
+    </div>
+    )
 }

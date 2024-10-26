@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/tomaslobato/mycloud/utils"
@@ -54,12 +55,37 @@ func GetContent(c *fiber.Ctx) error {
 	}
 
 	path := filepath.Join(os.Getenv("ROOT"), id)
+	ext := strings.ToLower(filepath.Ext(path))
+	var contentType string
 
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "failed reading file"})
+	switch ext {
+	case ".jpg", ".jpeg":
+		contentType = "image/jpeg"
+	case ".png":
+		contentType = "image/png"
+	case ".gif":
+		contentType = "image/gif"
+	case ".webp":
+		contentType = "image/webp"
+	case ".svg":
+		contentType = "image/svg+xml"
+	case ".csv":
+		contentType = "text/csv"
+	case ".md":
+		contentType = "text/markdown"
+	case ".txt":
+		contentType = "text/plain"
+	case ".pdf":
+		contentType = "application/pdf"
+	case ".mp4":
+		contentType = "video/mp4"
+	case ".mkv":
+		contentType = "video/x-matroska"
+	default:
+		// Let the browser figure it out
+		contentType = "application/octet-stream"
 	}
 
-	c.Set("Content-Type", "text/plain")
-	return c.SendString(string(content))
+	c.Set("Content-Type", contentType)
+	return c.SendFile(path)
 }
