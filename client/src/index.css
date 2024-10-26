@@ -316,6 +316,7 @@ header h1 {
   height: 100%;
   width: 100%;
   box-sizing: border-box;
+  line-height: 1.5;
 }
 
 .markdown p {
