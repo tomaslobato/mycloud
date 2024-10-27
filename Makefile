@@ -10,8 +10,8 @@ dev:
 
 build: bin
 	cd client && node esbuild.js
-	cd server && go build -o ../bin/$(BINARY) ./cmd/mycloud/main.go
-	cd server && go build -o ../bin/$(SETUP_BINARY) ./cmd/setup/main.go
+	cd server && go build -o ../bin/$(BINARY) ./cmd/mycloud
+	cd server && go build -o ../bin/$(SETUP_BINARY) ./cmd/setup
 	
 setup: 
 	cd bin && ./$(SETUP_BINARY)
