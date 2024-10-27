@@ -1,3 +1,4 @@
+
 services:
   mycloud:
     image: tomaslobato/mycloud:latest
@@ -5,9 +6,11 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 5555:5555
+      - "5555:5555"
     volumes:
-      - ~/mycloud:/app/mycloud
+      - ${ROOT:-~/mycloud}:/app/mycloud
+    env_file:
+      - ./bin/.env
     environment:
       - ROOT=/app/mycloud
     restart: unless-stopped

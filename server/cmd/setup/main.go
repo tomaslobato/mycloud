@@ -89,28 +89,34 @@ func main() {
 		break
 	}
 
-	envPath := filepath.Join(filepath.Join(rootDir), ".env")
-	envContent := fmt.Sprintf(`
-		APP_PASSWORD=%s
-		JWT_SECRET=%s`,
-		password, generateJWTSecret(32))
+	jwtSecret := generateJWTSecret(32)
 
-	//create root .env
-	if err := os.WriteFile(envPath, []byte(envContent), 0600); err != nil {
-		fmt.Printf("❌ Error creating .env file: %v\n", err)
+	// Create the .env file in the bin directory (for Docker)
+	binEnvPath := filepath.Join("bin", ".env")
+	binEnvContent := fmt.Sprintf(`APP_PASSWORD=%s
+JWT_SECRET=%s
+ROOT=/app/mycloud`, password, jwtSecret)
+
+	if err := os.WriteFile(binEnvPath, []byte(binEnvContent), 0600); err != nil {
+		fmt.Printf("❌ Error creating bin/.env file: %v\n", err)
 		os.Exit(1)
 	}
 
-	//create local env to find the root folder
+	storageEnvPath := filepath.Join(rootDir, ".env")
+	storageEnvContent := fmt.Sprintf(`APP_PASSWORD=%s
+JWT_SECRET=%s`, password, jwtSecret)
+
+	if err := os.WriteFile(storageEnvPath, []byte(storageEnvContent), 0600); err != nil {
+		fmt.Printf("❌ Error creating storage .env file: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create local env to find the root folder
 	localEnvContent := fmt.Sprintf("ROOT=%s", rootDir)
 	if err := os.WriteFile(".env", []byte(localEnvContent), 0600); err != nil {
 		fmt.Printf("❌ Error creating local .env file: %v\n", err)
 		os.Exit(1)
 	}
-
-	fmt.Printf("\n✅ Setup completed successfully!\n")
-	fmt.Printf("\nRun `make run` to start your MyCloud server")
-	fmt.Printf("\nRun `make tunnel` to securely tunnel your server to the internet with Cloudflare\n")
 }
 
 func generateJWTSecret(length int) string {

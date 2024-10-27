@@ -9,8 +9,8 @@ COPY ./bin/mycloud /app/bin/mycloud
 COPY ./bin/.env /app/bin/.env
 COPY ./bin/start.sh /app/bin/start.sh 
 
-RUN chmod +x /app/bin/start.sh  
+RUN chmod +x /app/bin/start.sh
+RUN mkdir -p /app/mycloud
 
-EXPOSE 5555
-
-CMD ["/app/bin/start.sh"]
+WORKDIR /app/bin
+CMD ["./start.sh"]
